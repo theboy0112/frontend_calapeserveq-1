@@ -42,20 +42,29 @@ body {
   background: var(--background);
 }
 
-.staff-dashboard-container {
+/* NEW: Wrapper for the entire page */
+.staff-dashboard-wrapper {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(135deg, #e6f2ff 0%, #f0f8ff 50%, #e1efff 100%);
 }
 
-.staff-panel {
+/* UPDATED: Container is now scrollable */
+.staff-dashboard-container {
   flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.staff-panel {
   max-width: 1400px;
   margin: 0 auto;
   padding: clamp(16px, 4vw, 32px);
   width: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  padding-bottom: clamp(40px, 6vw, 60px);
 }
 
 .loading-state {

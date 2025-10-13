@@ -425,193 +425,195 @@ const StaffDashboard = () => {
   }
 
   return (
-    <div className="staff-dashboard-container">
+    <div className="staff-dashboard-wrapper">
       <Header />
 
-      <div className="staff-panel">
-        {notification && (
-          <div className={`notification ${notification.type}`}>
-            <div className="notification-content">
-              {notification.type === "success" && <CheckCircle size={20} />}
-              {notification.type === "warning" && <AlertCircle size={20} />}
-              {notification.type === "info" && <Bell size={20} />}
-              {notification.type === "error" && <AlertCircle size={20} />}
-              <span>{notification.message}</span>
+      <div className="staff-dashboard-container">
+        <div className="staff-panel">
+          {notification && (
+            <div className={`notification ${notification.type}`}>
+              <div className="notification-content">
+                {notification.type === "success" && <CheckCircle size={20} />}
+                {notification.type === "warning" && <AlertCircle size={20} />}
+                {notification.type === "info" && <Bell size={20} />}
+                {notification.type === "error" && <AlertCircle size={20} />}
+                <span>{notification.message}</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="header">
-          <div className="header-info">
-            <h1 className="dashboard-title">{departmentInfo.name} Dashboard</h1>
-            <div className="current-time">
-              <span className="time-display">
-                {currentTime.toLocaleTimeString()}
-              </span>
-              <span>•</span>
-              <span className="date-display">
-                {currentTime.toLocaleDateString()}
-              </span>
+          <div className="header">
+            <div className="header-info">
+              <h1 className="dashboard-title">{departmentInfo.name} Dashboard</h1>
+              <div className="current-time">
+                <span className="time-display">
+                  {currentTime.toLocaleTimeString()}
+                </span>
+                <span>•</span>
+                <span className="date-display">
+                  {currentTime.toLocaleDateString()}
+                </span>
+              </div>
             </div>
+            <button className="logout-btn" onClick={handleLogout}>
+              <LogOut size={20} />
+              Logout
+            </button>
           </div>
-          <button className="logout-btn" onClick={handleLogout}>
-            <LogOut size={20} />
-            Logout
-          </button>
-        </div>
 
-        <div className="now-serving-section">
-          <div className="now-serving-card">
-            <div className="serving-info">
-              <div className="serving-header">
-                <span className="now-serving-label">Now Serving</span>
-                <div className="serving-indicator"></div>
+          <div className="now-serving-section">
+            <div className="now-serving-card">
+              <div className="serving-info">
+                <div className="serving-header">
+                  <span className="now-serving-label">Now Serving</span>
+                  <div className="serving-indicator"></div>
+                </div>
+                <div className="current-number">
+                  {currentServing
+                    ? (() => {
+                        const servingCustomer = queuesByDepartment.find(
+                          (item) => item.id === currentServing
+                        );
+                        return servingCustomer
+                          ? `${departmentInfo.prefix}-${
+                              servingCustomer.number || servingCustomer.queueNumber
+                            }`
+                          : "None";
+                      })()
+                    : "None"}
+                </div>
+                <div className="serving-details">
+                  {currentServing
+                    ? (() => {
+                        const servingCustomer = queuesByDepartment.find(
+                          (item) => item.id === currentServing
+                        );
+                        return servingCustomer ? (
+                          <>
+                            {servingCustomer.priority === "Priority" && (
+                              <Star className="priority-star" size={16} />
+                            )}
+                            {servingCustomer.type}
+                          </>
+                        ) : (
+                          "No citizen"
+                        );
+                      })()
+                    : "No citizen"}
+                </div>
               </div>
-              <div className="current-number">
-                {currentServing
-                  ? (() => {
-                      const servingCustomer = queuesByDepartment.find(
-                        (item) => item.id === currentServing
-                      );
-                      return servingCustomer
-                        ? `${departmentInfo.prefix}-${
-                            servingCustomer.number || servingCustomer.queueNumber
-                          }`
-                        : "None";
-                    })()
-                  : "None"}
-              </div>
-              <div className="serving-details">
-                {currentServing
-                  ? (() => {
-                      const servingCustomer = queuesByDepartment.find(
-                        (item) => item.id === currentServing
-                      );
-                      return servingCustomer ? (
-                        <>
-                          {servingCustomer.priority === "Priority" && (
-                            <Star className="priority-star" size={16} />
-                          )}
-                          {servingCustomer.type}
-                        </>
-                      ) : (
-                        "No citizen"
-                      );
-                    })()
-                  : "No citizen"}
-              </div>
-            </div>
-            <div className="action-buttons">
-              <button
-                className={`call-next-btn ${isCallLoading ? "loading" : ""}`}
-                onClick={handleCallNext}
-                disabled={isCallLoading || isSpeaking}
-              >
-                <Bell size={18} />
-                {isCallLoading ? "Calling..." : "Call Next"}
-              </button>
-              <button
-                className="repeat-call-btn"
-                onClick={handleRepeatCall}
-                disabled={!currentServing || isSpeaking}
-              >
-                <RotateCcw size={18} />
-                Repeat Call
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="statistics-section">
-          <h2 className="section-title">
-            <TrendingUp size={24} />
-            Queue Statistics
-          </h2>
-          <div className="stats-grid">
-            <div className="stat-card waiting">
-              <div className="stat-icon">
-                <Clock size={28} />
-              </div>
-              <div className="stat-content">
-                <div className="stat-number">{statistics.waiting}</div>
-                <div className="stat-label">Waiting</div>
-              </div>
-            </div>
-            <div className="stat-card serving">
-              <div className="stat-icon">
-                <Users size={28} />
-              </div>
-              <div className="stat-content">
-                <div className="stat-number">{statistics.serving}</div>
-                <div className="stat-label">Serving</div>
-              </div>
-            </div>
-            <div className="stat-card served">
-              <div className="stat-icon">
-                <CheckCircle size={28} />
-              </div>
-              <div className="stat-content">
-                <div className="stat-number">{statistics.served}</div>
-                <div className="stat-label">Completed</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="queue-section">
-          <h2 className="section-title">
-            <Users size={24} />
-            {departmentInfo.name} Queue
-          </h2>
-          <div className="queue-container">
-            <div className="queue-header">
-              <div className="queue-col">Ticket</div>
-              <div className="queue-col">Service Type</div>
-              <div className="queue-col">Priority</div>
-              <div className="queue-col">Status</div>
-            </div>
-            <div className="queue-list">
-              {queueList.map((item, index) => (
-                <div
-                  key={item.id ?? index}
-                  className={`queue-item ${item.status?.toLowerCase()} ${
-                    item.priority?.toLowerCase() === "priority"
-                      ? "priority-item"
-                      : ""
-                  }`}
+              <div className="action-buttons">
+                <button
+                  className={`call-next-btn ${isCallLoading ? "loading" : ""}`}
+                  onClick={handleCallNext}
+                  disabled={isCallLoading || isSpeaking}
                 >
-                  <div className="queue-col">
-                    <span className="queue-number">
-                      {item.displayNumber || item.number || item.id}
-                    </span>
-                  </div>
-                  <div className="queue-col">
-                    <span className={`badge ${item.type?.toLowerCase() || ""}`}>
-                      {item.type}
-                    </span>
-                  </div>
-                  <div className="queue-col">
-                    <span
-                      className={`badge priority ${
-                        item.priority?.toLowerCase() || ""
-                      }`}
-                    >
-                      {item.priority}
-                    </span>
-                  </div>
-                  <div className="queue-col">
-                    <span className={`status ${item.status?.toLowerCase() || ""}`}>
-                      {item.status}
-                    </span>
-                  </div>
+                  <Bell size={18} />
+                  {isCallLoading ? "Calling..." : "Call Next"}
+                </button>
+                <button
+                  className="repeat-call-btn"
+                  onClick={handleRepeatCall}
+                  disabled={!currentServing || isSpeaking}
+                >
+                  <RotateCcw size={18} />
+                  Repeat Call
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="statistics-section">
+            <h2 className="section-title">
+              <TrendingUp size={24} />
+              Queue Statistics
+            </h2>
+            <div className="stats-grid">
+              <div className="stat-card waiting">
+                <div className="stat-icon">
+                  <Clock size={28} />
                 </div>
-              ))}
-              {queueList.length === 0 && (
-                <div className="empty-queue">
-                  <Users size={48} className="empty-icon" />
-                  <p>No citizens in queue</p>
+                <div className="stat-content">
+                  <div className="stat-number">{statistics.waiting}</div>
+                  <div className="stat-label">Waiting</div>
                 </div>
-              )}
+              </div>
+              <div className="stat-card serving">
+                <div className="stat-icon">
+                  <Users size={28} />
+                </div>
+                <div className="stat-content">
+                  <div className="stat-number">{statistics.serving}</div>
+                  <div className="stat-label">Serving</div>
+                </div>
+              </div>
+              <div className="stat-card served">
+                <div className="stat-icon">
+                  <CheckCircle size={28} />
+                </div>
+                <div className="stat-content">
+                  <div className="stat-number">{statistics.served}</div>
+                  <div className="stat-label">Completed</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="queue-section">
+            <h2 className="section-title">
+              <Users size={24} />
+              {departmentInfo.name} Queue
+            </h2>
+            <div className="queue-container">
+              <div className="queue-header">
+                <div className="queue-col">Ticket</div>
+                <div className="queue-col">Service Type</div>
+                <div className="queue-col">Priority</div>
+                <div className="queue-col">Status</div>
+              </div>
+              <div className="queue-list">
+                {queueList.map((item, index) => (
+                  <div
+                    key={item.id ?? index}
+                    className={`queue-item ${item.status?.toLowerCase()} ${
+                      item.priority?.toLowerCase() === "priority"
+                        ? "priority-item"
+                        : ""
+                    }`}
+                  >
+                    <div className="queue-col">
+                      <span className="queue-number">
+                        {item.displayNumber || item.number || item.id}
+                      </span>
+                    </div>
+                    <div className="queue-col">
+                      <span className={`badge ${item.type?.toLowerCase() || ""}`}>
+                        {item.type}
+                      </span>
+                    </div>
+                    <div className="queue-col">
+                      <span
+                        className={`badge priority ${
+                          item.priority?.toLowerCase() || ""
+                        }`}
+                      >
+                        {item.priority}
+                      </span>
+                    </div>
+                    <div className="queue-col">
+                      <span className={`status ${item.status?.toLowerCase() || ""}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {queueList.length === 0 && (
+                  <div className="empty-queue">
+                    <Users size={48} className="empty-icon" />
+                    <p>No citizens in queue</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

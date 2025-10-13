@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { ApolloProvider } from "@apollo/client/react";
-import { client } from "./lib/apolloClient"; 
+import { ApolloProvider } from "@apollo/client";
+import { client } from "./lib/apolloClient";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -10,4 +10,3 @@ root.render(
     <App />
   </ApolloProvider>
 );
-

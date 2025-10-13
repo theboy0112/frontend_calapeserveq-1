@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   FiMenu,
   FiX,
-  FiHome,
   FiUser,
   FiUsers,
   FiLogOut,
@@ -11,34 +10,31 @@ import {
 } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import { Building2 } from "lucide-react";
-// import Profile from "./Profile";
-// import ManageStaff from "./ManageStaff";
-// import ManageDepartment from "./ManageDepartment";
 import "./styles/Dashboard.css";
-// import { useQuery } from "@apollo/client";
-// import { GET_ROLES, GET_DEPARTMENTS, GET_ALL_STAFF } from "../../graphql/query";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
-import logo from "/calapelogo.png";
+
+import ManageDepartment from "./ManageDepartment";
+import { useQuery } from "@apollo/client";
+import {
+  GET_SERVICES,
+  GET_DEPARTMENTS,
+  GET_ALL_STAFF,
+} from "../../graphql/query";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [adminProfile, setAdminProfile] = useState({
-    username: "admin",
-    profilePicture: null,
-    email: "admin@calape.gov.ph",
-    fullName: "Administrator",
-    phone: "+63 909 909 839",
-  });
-  const [findAllStaff, setStaffList] = useState([]);
+  const [findAll, setStaffList] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [services, setServices] = useState([]);
 
-  // TODO: Uncomment when backend is ready
-  // const { data: rolesData } = useQuery(GET_ROLES);
-  // const { data: deptData, refetch: refetchDepartments } = useQuery(GET_DEPARTMENTS);
-  // const { data: staffData } = useQuery(GET_ALL_STAFF);
+  const { data: deptData } = useQuery(GET_DEPARTMENTS);
+  console.log("Department DATA:", deptData);
+  const { data: servData } = useQuery(GET_SERVICES);
+
+  const { data: staffData } = useQuery(GET_ALL_STAFF);
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem("isAdminLoggedIn");
@@ -47,18 +43,23 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  // TODO: Uncomment when backend is ready
-  // useEffect(() => {
-  //   if (deptData && deptData.departments) {
-  //     setDepartments(deptData.departments);
-  //   }
-  // }, [deptData]);
+  useEffect(() => {
+    if (deptData && deptData.departments) {
+      setDepartments(deptData.departments);
+    }
+  }, [deptData]);
 
-  // useEffect(() => {
-  //   if (staffData && staffData.findAllStaff) {
-  //     setStaffList(staffData.findAllStaff);
-  //   }
-  // }, [staffData]);
+  useEffect(() => {
+    if (servData && servData.services) {
+      setServices(servData.services);
+    }
+  }, [servData]);
+
+  useEffect(() => {
+    if (staffData && staffData.findAll) {
+      setStaffList(staffData.findAll);
+    }
+  }, [staffData]);
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -88,9 +89,8 @@ const AdminDashboard = () => {
             <FiUsers size={24} />
           </div>
           <div className="stat-content">
-            <div className="stat-number">{findAllStaff.length}</div>
+            <div className="stat-number">{findAll.length}</div>
             <div className="stat-label">Total Staff</div>
-            <div className="stat-change">+2 this month</div>
           </div>
         </div>
 
@@ -101,36 +101,43 @@ const AdminDashboard = () => {
           <div className="stat-content">
             <div className="stat-number">{departments.length}</div>
             <div className="stat-label">Departments</div>
-            <div className="stat-change">Active</div>
+          </div>
+        </div>
+
+        <div className="stat-card services-card">
+          <div className="stat-icon">
+            <FiSettings size={24} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-number">{services.length}</div>
+            <div className="stat-label">Services</div>
           </div>
         </div>
       </div>
 
-      <div className="quick-actions">
-        <h2>Quick Actions</h2>
-        <div className="action-buttons">
-          <button
-            className="action-btn primary"
-            onClick={() => setActiveSection("staff")}
-          >
-            <FiUsers className="action-icon" size={20} />
-            <span>Manage Staff</span>
-          </button>
-          <button
-            className="action-btn secondary"
-            onClick={() => setActiveSection("departments")}
-          >
-            <Building2 className="action-icon" size={20} />
-            <span>Manage Departments</span>
-          </button>
-          <button
-            className="action-btn tertiary"
-            onClick={() => setActiveSection("profile")}
-          >
-            <FiSettings className="action-icon" size={20} />
-            <span>System Settings</span>
-          </button>
-        </div>
+      <h2>Quick Actions</h2>
+      <div className="action-buttons">
+        <button
+          className="action-btn primary"
+          onClick={() => setActiveSection("staff")}
+        >
+          <FiUsers className="action-icon" size={20} />
+          <span>Manage Staff</span>
+        </button>
+        <button
+          className="action-btn secondary"
+          onClick={() => setActiveSection("departments")}
+        >
+          <Building2 className="action-icon" size={20} />
+          <span>Manage Departments</span>
+        </button>
+        <button
+          className="action-btn tertiary"
+          onClick={() => setActiveSection("services")}
+        >
+          <FiSettings className="action-icon" size={20} />
+          <span>Manage Services</span>
+        </button>
       </div>
     </div>
   );
@@ -149,11 +156,9 @@ const AdminDashboard = () => {
       case "staff":
         return (
           <ManageStaff
-            findAllStaff={findAllStaff}
-            setStaffList={setStaffList}
+            findAll={findAll}
             departments={departments}
-            // roles={rolesData?.findAllRoles || []}
-            roles={[]}
+            setStaffList={setStaffList}
           />
         );
       case "departments":
@@ -163,6 +168,8 @@ const AdminDashboard = () => {
             setDepartments={setDepartments}
           />
         );
+      case "services":
+        return <ManageServices services={services} setServices={setServices} />;
       default:
         return renderDashboard();
     }
@@ -175,8 +182,8 @@ const AdminDashboard = () => {
       <div className="admin-dashboard">
         <div className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
           <div className="sidebar-header">
-            <div className="logo">
-              <img src={logo} alt="Calape Logo" className="logo-image" />
+            <div className="admin-icon-wrapper">
+              <FiUser size={32} />
             </div>
             <h3>Admin Panel</h3>
           </div>
@@ -216,28 +223,25 @@ const AdminDashboard = () => {
               }`}
               onClick={() => setActiveSection("departments")}
             >
-              <FiHome className="nav-icon" size={20} />
+              <Building2 className="nav-icon" size={20} />
               <span className="nav-text">Manage Departments</span>
+            </button>
+
+            <button
+              className={`nav-item ${
+                activeSection === "services" ? "active" : ""
+              }`}
+              onClick={() => setActiveSection("services")}
+            >
+              <FiSettings className="nav-icon" size={20} />
+              <span className="nav-text">Manage Services</span>
             </button>
           </nav>
 
           <div className="sidebar-footer">
-            <div className="admin-info">
-              <div className="admin-avatar">
-                {adminProfile.profilePicture ? (
-                  <img src={adminProfile.profilePicture} alt="Admin" />
-                ) : (
-                  <span>{adminProfile.username.charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-              <div className="admin-details">
-                <span className="admin-name">{adminProfile.fullName}</span>
-                <span className="admin-role">Administrator</span>
-              </div>
-            </div>
             <button onClick={handleLogout} className="logout-btn">
-              <FiLogOut className="nav-icon" size={18} />
-              <span className="nav-textlog">Logout</span>
+              <FiLogOut className="logout-icon" size={18} />
+              <span className="logout-text">Logout</span>
             </button>
           </div>
         </div>
@@ -262,14 +266,19 @@ const AdminDashboard = () => {
                   {activeSection === "profile" && "Profile Settings"}
                   {activeSection === "staff" && "Staff Management"}
                   {activeSection === "departments" && "Department Management"}
+                  {activeSection === "services" && "Services Management"}
                 </h1>
                 <p className="page-subtitle">
                   {activeSection === "dashboard" &&
                     "Overview of municipal operations"}
-                  {activeSection === "profile" && "Manage your account settings"}
-                  {activeSection === "staff" && "Manage staff members and roles"}
+                  {activeSection === "profile" &&
+                    "Manage your account settings"}
+                  {activeSection === "staff" &&
+                    "Manage staff members and roles"}
                   {activeSection === "departments" &&
                     "Organize departments and structure"}
+                  {activeSection === "services" &&
+                    "Manage municipal services and offerings"}
                 </p>
               </div>
             </div>

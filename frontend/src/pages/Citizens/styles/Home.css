@@ -14,16 +14,14 @@
   flex-direction: column;
 }
 
-/* Main content dili na flex:1 para dili niya i-push ang footer */
-.main-content {
+/* RENAMED from .main-content to .home-main-content */
+.home-main-content {
   flex: 1;
   display: flex;
-  justify-content: center;   /* center vertically within available space */
-  align-items: center;       /* center horizontally */
-  min-height: 0;             /* para dili mo-expand beyond */
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
 }
-
-
 
 .hero-section {
   text-align: center;

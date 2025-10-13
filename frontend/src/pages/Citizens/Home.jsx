@@ -22,7 +22,7 @@ const Home = () => {
     <div className="home-container">
       <Header />
 
-      <div className="main-content">
+      <div className="home-main-content">  {/* CHANGED */}
         <div className="hero-section">
           <div className="hero-content">
             <div className="hero-badge">
