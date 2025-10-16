@@ -25,6 +25,8 @@ export const GET_ALL_STAFF = gql`
   query Query {
     findAll {
       staffId
+      staffFirstname
+      staffLastname
       department {
         departmentName
         prefix
@@ -45,8 +47,12 @@ export const GET_STAFF = gql`
 export const GET_SERVICES = gql`
   query Services {
     services {
-      serviceId  
+      serviceId
       serviceName
+      department {
+        departmentId
+        departmentName
+      }
     }
   }
 `;
@@ -62,6 +68,15 @@ export const GET_QUEUE = gql`
       queueId
       status
       type
+    }
+  }
+`;
+
+export const GET_ROLES = gql`
+  query GetAllRoles {
+    roles {
+      roleId
+      roleName
     }
   }
 `;

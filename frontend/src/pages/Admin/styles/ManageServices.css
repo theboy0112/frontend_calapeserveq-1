@@ -1,5 +1,5 @@
 /* Main Container */
-.staff-content {
+.services-content {
   padding: 32px;
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f8fafc 100%);
   min-height: 100vh;
@@ -7,7 +7,7 @@
 }
 
 /* Header Section */
-.staff-header {
+.services-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -34,7 +34,7 @@
   font-weight: 500;
 }
 
-.add-staff-btn {
+.add-service-btn {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: white;
   border: none;
@@ -50,23 +50,23 @@
   gap: 10px;
 }
 
-.add-staff-btn:hover {
+.add-service-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 30px rgba(2, 132, 199, 0.5);
   background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
 }
 
-.add-staff-btn .btn-icon {
+.add-service-btn .btn-icon {
   font-size: 14px;
   transition: transform 0.3s ease;
 }
 
-.add-staff-btn:hover .btn-icon {
+.add-service-btn:hover .btn-icon {
   transform: rotate(90deg);
 }
 
 /* Modal Overlay */
-.staff-form-overlay {
+.service-form-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -87,7 +87,7 @@
 }
 
 /* Modal */
-.staff-form-modal {
+.service-form-modal {
   background: white;
   padding: 40px;
   border-radius: 24px;
@@ -191,46 +191,6 @@
   padding-right: 50px;
 }
 
-.form-group input:disabled,
-.form-group select:disabled {
-  background: #f1f5f9 !important;
-  cursor: not-allowed;
-  color: #94a3b8 !important;
-  opacity: 0.7;
-}
-
-/* Password Input Wrapper */
-.password-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input-wrapper input {
-  padding-right: 55px;
-}
-
-.password-toggle-btn {
-  position: absolute;
-  right: 12px;
-  background: transparent;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  font-size: 18px;
-  border-radius: 6px;
-}
-
-.password-toggle-btn:hover {
-  color: #0284c7;
-  background: #f0f9ff;
-}
-
 /* Form Actions */
 .form-actions {
   display: flex;
@@ -275,7 +235,7 @@
 }
 
 /* Table Container */
-.staff-table-container {
+.services-table-container {
   background: white;
   border-radius: 20px;
   overflow: hidden;
@@ -301,7 +261,7 @@
   margin: 0;
 }
 
-.staff-count {
+.service-count {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: white;
   padding: 8px 20px;
@@ -311,18 +271,107 @@
   box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3);
 }
 
-/* Table */
-.staff-table table {
+/* Department Groups */
+.services-grouped {
+  padding: 0;
+}
+
+.department-group {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.department-group:last-child {
+  border-bottom: none;
+}
+
+.department-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.department-header:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #e0f2fe 100%);
+  border-left-color: #0284c7;
+}
+
+.department-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.department-icon {
+  font-size: 28px;
+  color: #0284c7;
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.15);
+}
+
+.department-name {
+  color: #0c4a6e;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.service-badge {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+}
+
+.collapse-btn {
+  background: white;
+  border: 2px solid #e2e8f0;
+  color: #0284c7;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 16px;
+}
+
+.collapse-btn:hover {
+  background: #0284c7;
+  color: white;
+  border-color: #0284c7;
+  transform: scale(1.05);
+}
+
+/* Services List */
+.services-list {
+  padding: 0;
+}
+
+.services-list table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.staff-table thead {
+.services-list thead {
   background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%);
 }
 
-.staff-table th {
-  padding: 20px 32px;
+.services-list th {
+  padding: 18px 32px;
   text-align: left;
   font-weight: 600;
   font-size: 13px;
@@ -349,69 +398,52 @@
 
 .table-row:hover {
   background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%);
-  transform: scale(1.002);
-  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.1);
+  transform: scale(1.001);
 }
 
 .table-row:last-child {
   border-bottom: none;
 }
 
-/* Staff Cell */
-.staff-name-cell {
-  padding: 24px 32px;
+/* Service Type Cell */
+.service-type-cell {
+  padding: 20px 32px;
 }
 
-.staff-info {
+.service-info {
   display: flex;
   align-items: center;
   gap: 18px;
 }
 
-.staff-avatar {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+.service-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 700;
-  font-size: 20px;
-  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+  font-size: 22px;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
 }
 
-.staff-details {
+.service-details {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.staff-name {
+.service-name {
   font-size: 16px;
   font-weight: 600;
   color: #0c4a6e;
 }
 
-/* Department Cell */
-.department-cell {
-  padding: 24px 32px;
-}
-
-.department-badge {
-  display: inline-block;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-  color: #0369a1;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
 /* Actions Cell */
 .actions-cell {
-  padding: 24px 32px;
+  padding: 20px 32px;
 }
 
 .actions {
@@ -530,11 +562,11 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .staff-content {
+  .services-content {
     padding: 20px;
   }
   
-  .staff-header {
+  .services-header {
     flex-direction: column;
     gap: 24px;
     align-items: stretch;
@@ -548,12 +580,12 @@
     font-size: 28px;
   }
   
-  .add-staff-btn {
+  .add-service-btn {
     width: 100%;
     justify-content: center;
   }
   
-  .staff-form-modal {
+  .service-form-modal {
     padding: 28px;
     margin: 20px;
     border-radius: 20px;
@@ -569,19 +601,36 @@
     align-items: flex-start;
   }
   
-  .staff-table {
+  .department-header {
+    padding: 20px 24px;
+  }
+  
+  .department-info {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .department-name {
+    font-size: 18px;
+  }
+  
+  .department-icon {
+    font-size: 24px;
+    padding: 10px;
+  }
+  
+  .services-list th,
+  .service-type-cell,
+  .actions-cell {
+    padding: 16px 24px;
+  }
+  
+  .services-list {
     overflow-x: auto;
   }
   
-  .staff-table table {
-    min-width: 800px;
-  }
-  
-  .staff-table th,
-  .staff-name-cell,
-  .department-cell,
-  .actions-cell {
-    padding: 16px 20px;
+  .services-list table {
+    min-width: 600px;
   }
   
   .form-actions {
@@ -594,14 +643,14 @@
     width: 100%;
   }
   
-  .staff-info {
+  .service-info {
     gap: 14px;
   }
   
-  .staff-avatar {
+  .service-icon {
     width: 44px;
     height: 44px;
-    font-size: 18px;
+    font-size: 20px;
   }
   
   .actions {
@@ -621,20 +670,25 @@
 }
 
 /* Scrollbar Styling */
-.staff-form-modal::-webkit-scrollbar {
+.service-form-modal::-webkit-scrollbar,
+.services-list::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
-.staff-form-modal::-webkit-scrollbar-track {
+.service-form-modal::-webkit-scrollbar-track,
+.services-list::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 10px;
 }
 
-.staff-form-modal::-webkit-scrollbar-thumb {
+.service-form-modal::-webkit-scrollbar-thumb,
+.services-list::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 10px;
 }
 
-.staff-form-modal::-webkit-scrollbar-thumb:hover {
+.service-form-modal::-webkit-scrollbar-thumb:hover,
+.services-list::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }

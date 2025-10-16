@@ -15,6 +15,10 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 
 import ManageDepartment from "./ManageDepartment";
+import ManageStaff from "./ManageStaff";
+import ManageServices from "./ManageServices"
+import ManageProfile from "./ManageProfile";
+
 import { useQuery } from "@apollo/client";
 import {
   GET_SERVICES,

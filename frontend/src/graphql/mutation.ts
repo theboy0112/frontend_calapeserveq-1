@@ -66,13 +66,17 @@ export const CREATE_STAFF = gql`
       staffId
       staffUsername
       staffPassword
+      staffFirstname
+      staffLastname
     }
   }
 `;
 export const UPDATE_STAFF = gql`
   mutation UpdateStaff($updateStaffInput: UpdateStaffInput!) {
     updateStaff(updateStaffInput: $updateStaffInput) {
-      staffPassword
+      staffId
+      staffFirstname
+      staffLastname
     }
   }
 `;

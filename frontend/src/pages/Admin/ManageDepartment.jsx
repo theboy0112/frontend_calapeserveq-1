@@ -10,6 +10,7 @@ import { GET_DEPARTMENTS } from "../../graphql/query";
 import { FaPlus, FaEdit, FaTrash, FaTimes, FaFolder } from "react-icons/fa";
 import { IoMdSettings } from "react-icons/io";
 import { HiOfficeBuilding } from "react-icons/hi";
+import Swal from "sweetalert2";
 
 const ManageDepartment = ({ departments, setDepartments }) => {
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
@@ -53,7 +54,7 @@ const ManageDepartment = ({ departments, setDepartments }) => {
         const result = await updateDepartment({
           variables: {
             updateDepartmentInput: {
-              id: editingDepartment.departmentId,
+              departmentId: editingDepartment.departmentId, // ✅ use correct field name
               departmentName: newDepartment.name,
               prefix: newDepartment.prefix,
             },
@@ -64,14 +65,17 @@ const ManageDepartment = ({ departments, setDepartments }) => {
         if (updatedDept) {
           setDepartments(
             departments.map((dept) =>
-              dept.departmentId === editingDepartment.departmentId 
-                ? { ...updatedDept, departmentId: editingDepartment.departmentId } 
+              dept.departmentId === editingDepartment.departmentId
+                ? {
+                    ...updatedDept,
+                    departmentId: editingDepartment.departmentId,
+                  }
                 : dept
             )
           );
         }
       } catch (error) {
-        alert("Failed to update department: " + error.message);
+        
       }
 
       setEditingDepartment(null);
@@ -91,7 +95,12 @@ const ManageDepartment = ({ departments, setDepartments }) => {
           setDepartments([...departments, createdDept]);
         }
       } catch (error) {
-        alert("Failed to create department: " + error.message);
+        Swal.fire({
+                 icon: "error",
+                 title: "Oops...",
+                 text: "Something went wrong!",
+                 footer: '<a href="#">Why do I have this issue?</a>',
+               });
       }
     }
 
@@ -109,16 +118,39 @@ const ManageDepartment = ({ departments, setDepartments }) => {
     });
     setShowDepartmentForm(true);
   };
-
   const handleDeleteDepartment = async (departmentId) => {
-    if (window.confirm("Are you sure you want to delete this department?")) {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This department will be permanently deleted.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (result.isConfirmed) {
       try {
-        await deleteDepartment({
-          variables: { removeDepartmentId: departmentId },
+        await deleteStaff({
+          variables: { departmentId: departmentId },
         });
-        setDepartments(departments.filter((dept) => dept.departmentId !== departmentId));
+
+        setStaff(
+          staff.filter((member) => member.departmentId !== departmentId)
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "The department has been successfully deleted.",
+          confirmButtonColor: "#3085d6",
+        });
       } catch (error) {
-        alert("Failed to delete department: " + error.message);
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Something went wrong while deleting the staff member!",
+        });
       }
     }
   };
@@ -134,7 +166,9 @@ const ManageDepartment = ({ departments, setDepartments }) => {
       <div className="departments-header">
         <div className="header-content">
           <h2>Department Management</h2>
-          <p className="header-subtitle">Organize and manage municipal departments</p>
+          <p className="header-subtitle">
+            Organize and manage municipal departments
+          </p>
         </div>
         <button
           onClick={() => setShowDepartmentForm(true)}
@@ -199,7 +233,9 @@ const ManageDepartment = ({ departments, setDepartments }) => {
                   Cancel
                 </button>
                 <button type="submit" className="submit-btn">
-                  {editingDepartment ? "Update Department" : "Create Department"}
+                  {editingDepartment
+                    ? "Update Department"
+                    : "Create Department"}
                 </button>
               </div>
             </form>
@@ -246,7 +282,8 @@ const ManageDepartment = ({ departments, setDepartments }) => {
                           {department.departmentName}
                         </span>
                         <span className="department-code">
-                          {department.prefix || department.departmentName.slice(0, 4).toUpperCase()}
+                          {department.prefix ||
+                            department.departmentName.slice(0, 4).toUpperCase()}
                         </span>
                       </div>
                     </div>
@@ -262,7 +299,9 @@ const ManageDepartment = ({ departments, setDepartments }) => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteDepartment(department.departmentId)}
+                        onClick={() =>
+                          handleDeleteDepartment(department.departmentId)
+                        }
                         className="delete-btn"
                         title="Delete Department"
                       >
