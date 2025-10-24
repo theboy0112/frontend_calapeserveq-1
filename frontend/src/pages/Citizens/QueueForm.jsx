@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@apollo/client";
+import { useMemo } from "react";
 import {
   ArrowLeft,
   Building2,
@@ -27,12 +28,49 @@ const QueueForm = ({ onBack }) => {
     priority: "",
   });
 
-  // GraphQL Queries
-  const { data: departmentsData, loading: departmentsLoading, error: departmentsError } = useQuery(GET_DEPARTMENTS);
-  const { data: servicesData, loading: servicesLoading, error: servicesError } = useQuery(GET_SERVICES);
+ const {
+  data: departmentsData,
+  loading: departmentsLoading,
+  error: departmentsError,
+} = useQuery(GET_DEPARTMENTS, {
+  fetchPolicy: "network-only",
+});
 
-  // GraphQL Mutation
-  const [createQueue, { loading: creatingQueue }] = useMutation(CREATE_QUEUE);
+  const {
+    data: servicesData,
+    loading: servicesLoading,
+    error: servicesError,
+  } = useQuery(GET_SERVICES, {
+    fetchPolicy: "network-only",
+    onError: (e) => {
+      console.error("Services query error:", e);
+      if (e?.graphQLErrors?.length) console.error("GQL errors:", e.graphQLErrors);
+      if (e?.networkError) console.error("Network error:", e.networkError);
+    },
+  });
+
+  const departmentOptions = useMemo(() => {
+    const direct = Array.isArray(departmentsData?.departments)
+      ? departmentsData.departments
+      : null;
+    if (direct && direct.length) return direct;
+
+    const services = Array.isArray(servicesData?.services)
+      ? servicesData.services
+      : [];
+    const map = new Map();
+    for (const s of services) {
+      if (s?.department?.departmentId && s?.department?.departmentName) {
+        map.set(s.department.departmentId, {
+          departmentId: s.department.departmentId,
+          departmentName: s.department.departmentName,
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [departmentsData, servicesData]);
+
+  const [createQueue] = useMutation(CREATE_QUEUE);
 
   const [queueNumber, setQueueNumber] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -40,15 +78,13 @@ const QueueForm = ({ onBack }) => {
   const [error, setError] = useState("");
   const [filteredServices, setFilteredServices] = useState([]);
 
-  // Filter services based on selected department
   useEffect(() => {
     if (servicesData?.services && formData.departmentId) {
       const filtered = servicesData.services.filter(
-        service => String(service.department.departmentId) === String(formData.departmentId)
+        (service) =>
+          String(service.department.departmentId) ===
+          String(formData.departmentId)
       );
-      console.log('Selected Department ID:', formData.departmentId);
-      console.log('All Services:', servicesData.services);
-      console.log('Filtered Services:', filtered);
       setFilteredServices(filtered);
     } else {
       setFilteredServices([]);
@@ -57,16 +93,15 @@ const QueueForm = ({ onBack }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Convert to integer for departmentId and serviceId
-    const processedValue = (name === 'departmentId' || name === 'serviceId') 
-      ? parseInt(value, 10) 
-      : value;
-    
+    const processedValue =
+      name === "departmentId" || name === "serviceId"
+        ? parseInt(value, 10)
+        : value;
+
     setFormData((prev) => ({
       ...prev,
       [name]: processedValue,
-      // Reset service when department changes
-      ...(name === 'departmentId' && { serviceId: '' })
+      ...(name === "departmentId" && { serviceId: "" }),
     }));
     if (error) setError("");
   };
@@ -84,13 +119,13 @@ const QueueForm = ({ onBack }) => {
       setError("Please select a priority level");
       return;
     }
-    
+
     setError("");
-    setCurrentStep(prev => Math.min(prev + 1, 4));
+    setCurrentStep((prev) => Math.min(prev + 1, 4));
   };
 
   const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
     setError("");
   };
 
@@ -99,48 +134,63 @@ const QueueForm = ({ onBack }) => {
     setError("");
 
     try {
-      console.log('Form Data:', formData);
-      console.log('Filtered Services:', filteredServices);
-      console.log('All Departments:', departmentsData?.departments);
-
       const selectedService = filteredServices.find(
-        service => String(service.serviceId) === String(formData.serviceId)
+        (service) => String(service.serviceId) === String(formData.serviceId)
       );
 
-      const selectedDepartment = departmentsData?.departments?.find(
-        dept => String(dept.departmentId) === String(formData.departmentId)
+      const selectedDepartment = departmentOptions?.find(
+        (dept) => String(dept.departmentId) === String(formData.departmentId)
       );
-
-      console.log('Selected Service:', selectedService);
-      console.log('Selected Department:', selectedDepartment);
 
       if (!selectedService || !selectedDepartment) {
         throw new Error("Selected service or department not found");
       }
 
-      // Match the CreateQueueInput structure from your backend
+      const normalizedPriority =
+        String(formData.priority).toLowerCase() === "priority" ? "senior/pwd/pregnant" : "regular";
+
       const createQueueInput = {
-        departmentId: parseInt(formData.departmentId, 10),
-        serviceId: parseInt(formData.serviceId, 10),
-        priority: formData.priority,
-        status: "waiting"
+        departmentId: Number(formData.departmentId),
+        serviceId: Number(formData.serviceId),
+        priority: normalizedPriority,
       };
 
-      console.log('Create Queue Input:', createQueueInput);
-
       const { data } = await createQueue({
-        variables: { createQueueInput }
+        variables: { createQueueInput },
       });
 
-      console.log('Mutation Response:', data);
-
       if (data?.createQueue) {
-        setQueueNumber(data.createQueue.number);
+        setQueueNumber(data.createQueue);
         setShowModal(true);
+        try {
+          const deptId = Number(formData.departmentId);
+          if (!Number.isNaN(deptId)) {
+            const channel = new BroadcastChannel(`queue-${deptId}`);
+            channel.postMessage({
+              type: "NEW_QUEUE",
+              data: {
+                queueNumber: data.createQueue,
+                departmentId: deptId,
+                serviceId: Number(formData.serviceId),
+                priority: normalizedPriority,
+                status: "Waiting",
+                createdAt: new Date().toISOString(),
+              },
+            });
+            channel.close();
+          }
+        } catch (e) {
+          console.warn("Broadcast channel not available:", e);
+        }
       }
     } catch (error) {
       console.error("Error creating queue:", error);
-      setError(error.message || "Failed to create queue. Please try again.");
+      const gqlMsg =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.networkError?.result?.errors?.[0]?.message ||
+        error?.networkError?.message ||
+        error?.message;
+      setError(gqlMsg || "Failed to create queue. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -158,44 +208,60 @@ const QueueForm = ({ onBack }) => {
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case 1: return "Department Selection";
-      case 2: return "Type of Service";
-      case 3: return "Priority Level";
-      case 4: return "Generate Queue Number";
-      default: return "";
+      case 1:
+        return "Department Selection";
+      case 2:
+        return "Type of Service";
+      case 3:
+        return "Priority Level";
+      case 4:
+        return "Generate Queue Number";
+      default:
+        return "";
     }
   };
 
   const getStepSubtitle = () => {
     switch (currentStep) {
-      case 1: return "Choose your destination municipal department";
-      case 2: return "Select the type of service you need";
-      case 3: return "Choose your priority level";
-      case 4: return "Review your information and generate queue number";
-      default: return "";
+      case 1:
+        return "Choose your destination municipal department";
+      case 2:
+        return "Select the type of service you need";
+      case 3:
+        return "Choose your priority level";
+      case 4:
+        return "Review your information and generate queue number";
+      default:
+        return "";
     }
   };
 
   const getSelectedDepartmentName = () => {
-    const dept = departmentsData?.departments?.find(
-      d => d.departmentId === formData.departmentId
+    const dept = departmentOptions?.find(
+      (d) => d.departmentId === formData.departmentId
     );
     return dept?.departmentName || "";
   };
 
   const getSelectedServiceName = () => {
     const service = filteredServices.find(
-      s => s.serviceId === formData.serviceId
+      (s) => s.serviceId === formData.serviceId
     );
     return service?.serviceName || "";
   };
 
-  if (departmentsError || servicesError) {
+  const hasDeptArray = Array.isArray(departmentsData?.departments);
+  const hasServicesArray = Array.isArray(servicesData?.services);
+  if (!departmentsLoading && !servicesLoading && !hasDeptArray && !hasServicesArray) {
     return (
       <div className="home-container">
         <Header />
         <div className="error-message">
           <p>Error loading data. Please refresh the page.</p>
+          <p>
+            {(departmentsError?.graphQLErrors?.[0]?.message || departmentsError?.message ||
+              servicesError?.graphQLErrors?.[0]?.message || servicesError?.message) ?? ""}
+          </p>
         </div>
         <Footer />
       </div>
@@ -211,25 +277,26 @@ const QueueForm = ({ onBack }) => {
           Back to Home
         </button>
       </div>
-      
+
       <div className="queue-form-container">
         <div className="form-header">
           <div className="progress-container">
             <div className="progress-steps">
               {[1, 2, 3, 4].map((step) => (
-                <div key={step} className={`progress-step ${currentStep >= step ? 'active' : ''} ${currentStep > step ? 'completed' : ''}`}>
+                <div
+                  key={step}
+                  className={`progress-step ${currentStep >= step ? "active" : ""} ${currentStep > step ? "completed" : ""}`}
+                >
                   <div className="step-circle">
                     {currentStep > step ? <Check size={14} /> : step}
                   </div>
-                  <div className="step-label">
-                    Step {step}
-                  </div>
+                  <div className="step-label">Step {step}</div>
                 </div>
               ))}
             </div>
             <div className="progress-bar">
-              <div 
-                className="progress-fill" 
+              <div
+                className="progress-fill"
                 style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
               ></div>
             </div>
@@ -250,7 +317,6 @@ const QueueForm = ({ onBack }) => {
 
           <div className="queue-form">
             <div className="form-slides">
-              {/* Step 1: Department Selection */}
               {currentStep === 1 && (
                 <div className="form-slide active">
                   <div className="form-section">
@@ -274,10 +340,15 @@ const QueueForm = ({ onBack }) => {
                           disabled={departmentsLoading}
                         >
                           <option value="" disabled>
-                            {departmentsLoading ? "Loading departments..." : "-- Select Department --"}
+                            {departmentsLoading
+                              ? "Loading departments..."
+                              : "-- Select Department --"}
                           </option>
-                          {departmentsData?.departments?.map((dept) => (
-                            <option key={dept.departmentId} value={dept.departmentId}>
+                          {departmentOptions?.map((dept) => (
+                            <option
+                              key={dept.departmentId}
+                              value={dept.departmentId}
+                            >
                               {dept.departmentName}
                             </option>
                           ))}
@@ -289,7 +360,6 @@ const QueueForm = ({ onBack }) => {
                 </div>
               )}
 
-              {/* Step 2: Service Type */}
               {currentStep === 2 && (
                 <div className="form-slide active">
                   <div className="form-section">
@@ -313,14 +383,17 @@ const QueueForm = ({ onBack }) => {
                           disabled={servicesLoading || !formData.departmentId}
                         >
                           <option value="" disabled>
-                            {!formData.departmentId 
+                            {!formData.departmentId
                               ? "Please select a department first"
-                              : servicesLoading 
-                              ? "Loading services..." 
-                              : "-- Select Service Type --"}
+                              : servicesLoading
+                                ? "Loading services..."
+                                : "-- Select Service Type --"}
                           </option>
                           {filteredServices.map((service) => (
-                            <option key={service.serviceId} value={service.serviceId}>
+                            <option
+                              key={service.serviceId}
+                              value={service.serviceId}
+                            >
                               {service.serviceName}
                             </option>
                           ))}
@@ -332,7 +405,6 @@ const QueueForm = ({ onBack }) => {
                 </div>
               )}
 
-              {/* Step 3: Priority Level */}
               {currentStep === 3 && (
                 <div className="form-slide active">
                   <div className="form-section">
@@ -358,7 +430,9 @@ const QueueForm = ({ onBack }) => {
                             -- Select Priority --
                           </option>
                           <option value="Regular">Regular</option>
-                          <option value="Priority">Priority (Senior/PWD/Pregnant)</option>
+                          <option value="Priority">
+                            Priority (Senior/PWD/Pregnant)
+                          </option>
                         </select>
                         <ChevronDown className="select-arrow" size={14} />
                       </div>
@@ -367,7 +441,6 @@ const QueueForm = ({ onBack }) => {
                 </div>
               )}
 
-              {/* Step 4: Review and Submit */}
               {currentStep === 4 && (
                 <div className="form-slide active">
                   <div className="form-section">
@@ -397,9 +470,9 @@ const QueueForm = ({ onBack }) => {
             {/* Form Actions */}
             <div className="form-actions">
               {currentStep > 1 && (
-                <button 
-                  type="button" 
-                  className="previous-btn" 
+                <button
+                  type="button"
+                  className="previous-btn"
                   onClick={handlePrevious}
                   disabled={isSubmitting}
                 >
@@ -409,11 +482,7 @@ const QueueForm = ({ onBack }) => {
               )}
 
               {currentStep < 4 ? (
-                <button 
-                  type="button" 
-                  className="next-btn" 
-                  onClick={handleNext}
-                >
+                <button type="button" className="next-btn" onClick={handleNext}>
                   Next
                   <ArrowRight size={16} />
                 </button>

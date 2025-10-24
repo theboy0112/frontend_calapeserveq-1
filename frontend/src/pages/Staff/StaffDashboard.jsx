@@ -9,11 +9,14 @@ import {
   AlertCircle,
   TrendingUp,
   Star,
+  Settings,
+  User,
+  ChevronDown,
 } from "lucide-react";
 import "./styles/StaffDashboard.css";
-// import { useQuery, useMutation } from "@apollo/client";
-// import { GET_QUEUES_BY_DEPARTMENT } from "../../graphql/query";
-// import { UPDATE_QUEUE_STATUS } from "../../graphql/mutation";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_QUEUES_BY_DEPARTMENT } from "../../graphql/query";
+import { UPDATE_QUEUE_STATUS } from "../../graphql/mutation";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
@@ -41,8 +44,22 @@ const StaffDashboard = () => {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [volume, setVolume] = useState(0.8);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const speechSynthRef = useRef(null);
   const notificationSoundRef = useRef(null);
+  const userMenuRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Audio setup
   useEffect(() => {
@@ -143,53 +160,76 @@ const StaffDashboard = () => {
     }, 300);
   };
 
-  // TODO: Uncomment when backend is ready
-  // const {
-  //   data: queueQueryData,
-  //   loading: queueLoading,
-  //   error: queueError,
-  //   refetch: refetchQueues,
-  // } = useQuery(GET_QUEUES_BY_DEPARTMENT, {
-  //   variables: { departmentId: departmentInfo.id },
-  //   skip: !departmentInfo.id || isLoading,
-  //   fetchPolicy: "cache-and-network",
-  //   pollInterval: 5000,
-  // });
+  const {
+    data: queueQueryData,
+    loading: queueLoading,
+    error: queueError,
+    refetch: refetchQueues,
+  } = useQuery(GET_QUEUES_BY_DEPARTMENT, {
+    variables: { departmentId: departmentInfo.id },
+    skip: !departmentInfo.id || isLoading,
+    fetchPolicy: "cache-and-network",
+    pollInterval: 5000,
+    onError: (err) => {
+      console.error("GraphQL Error Details:", {
+        message: err.message,
+        graphQLErrors: err.graphQLErrors,
+        networkError: err.networkError,
+        extraInfo: err.extraInfo,
+      });
+    },
+  });
 
-  // useEffect(() => {
-  //   if (queueQueryData && queueQueryData.queuesByDepartment) {
-  //     setQueuesByDepartment(queueQueryData.queuesByDepartment);
-  //   }
-  // }, [queueQueryData]);
+  useEffect(() => {
+    if (queueQueryData && queueQueryData.QueueByDepartment) {
+      setQueuesByDepartment(queueQueryData.QueueByDepartment);
+    } else {
+      setQueuesByDepartment([]);
+    }
+  }, [queueQueryData]);
 
-  // const [updateQueueStatus] = useMutation(UPDATE_QUEUE_STATUS, {
-  //   onCompleted: () => {
-  //     refetchQueues();
-  //   },
-  //   onError: (error) => {
-  //     showNotification("Failed to update queue status", "error");
-  //   },
-  // });
+  const [updateQueueStatus] = useMutation(UPDATE_QUEUE_STATUS, {
+    onCompleted: (data) => {
+      refetchQueues();
+    },
+    onError: (error) => {
+      console.error("Update queue error:", error);
+      showNotification("Failed to update queue status", "error");
+    },
+    refetchQueries: [
+      {
+        query: GET_QUEUES_BY_DEPARTMENT,
+        variables: { departmentId: departmentInfo.id }
+      }
+    ],
+    awaitRefetchQueries: true,
+  });
 
   // Calculate statistics
   useEffect(() => {
-    if (Array.isArray(queuesByDepartment)) {
+    if (Array.isArray(queuesByDepartment) && queuesByDepartment.length > 0) {
       const waitingCount = queuesByDepartment.filter(
-        (queue) => queue.status === "Waiting"
+        (queue) => queue.status?.toLowerCase() === "waiting"
       ).length;
 
       const servingCount = queuesByDepartment.filter(
-        (queue) => queue.status === "Serving"
+        (queue) => queue.status?.toLowerCase() === "serving"
       ).length;
 
       const servedCount = queuesByDepartment.filter(
-        (queue) => queue.status === "Complete"
+        (queue) => queue.status?.toLowerCase() === "complete" || queue.status?.toLowerCase() === "completed"
       ).length;
 
       setStatistics({
         waiting: waitingCount,
         serving: servingCount,
         served: servedCount,
+      });
+    } else {
+      setStatistics({
+        waiting: 0,
+        serving: 0,
+        served: 0,
       });
     }
   }, [queuesByDepartment]);
@@ -253,21 +293,31 @@ const StaffDashboard = () => {
   useEffect(() => {
     if (queuesByDepartment?.length) {
       const transformed = queuesByDepartment.map((q) => ({
-        id: q.id,
-        number: q.number || q.queueNumber,
-        type: q.type || q.queueType,
-        priority: q.priority || q.priorityLevel,
-        status: q.status || q.queueStatus,
-        createdAt: q.createdAt || q.created_at,
-        displayNumber: `${departmentInfo.prefix}-${q.number || q.queueNumber || ""}`,
+        id: q.queueId,
+        queueId: q.queueId,
+        number: q.number,
+        type: q.service?.serviceName || "Standard Service",
+        priority: q.priority,
+        status: q.status,
+        createdAt: q.createdAt,
+        displayNumber: `${departmentInfo.prefix}-${q.number || ""}`,
+        department: q.department,
+        service: q.service,
       }));
 
-      const activeQueues = transformed.filter((q) => q.status !== "Complete");
+      const activeQueues = transformed.filter((q) => 
+        q.status?.toLowerCase() !== "complete" && 
+        q.status?.toLowerCase() !== "completed"
+      );
+      
       setQueueList(activeQueues);
 
-      const currentServingQueue = transformed.find((q) => q.status === "Serving");
+      const currentServingQueue = transformed.find((q) => 
+        q.status?.toLowerCase() === "serving"
+      );
+      
       if (currentServingQueue) {
-        setCurrentServing(currentServingQueue.id);
+        setCurrentServing(currentServingQueue.queueId);
       } else {
         setCurrentServing(null);
       }
@@ -277,24 +327,24 @@ const StaffDashboard = () => {
     }
   }, [queuesByDepartment, departmentInfo.prefix]);
 
-  // TODO: Uncomment when backend is ready
-  // useEffect(() => {
-  //   if (queueError) {
-  //     if (
-  //       queueError.graphQLErrors?.some(
-  //         (error) =>
-  //           error.message.includes("Unauthorized") ||
-  //           error.message.includes("Invalid token") ||
-  //           error.extensions?.code === "UNAUTHENTICATED"
-  //       )
-  //     ) {
-  //       showNotification("Session expired. Please login again.", "error");
-  //       handleRedirectToLogin();
-  //     } else {
-  //       showNotification("Failed to load queue data", "error");
-  //     }
-  //   }
-  // }, [queueError]);
+  useEffect(() => {
+    if (queueError) {
+      console.error("Queue query error:", queueError);
+      if (
+        queueError.graphQLErrors?.some(
+          (error) =>
+            error.message.includes("Unauthorized") ||
+            error.message.includes("Invalid token") ||
+            error.extensions?.code === "UNAUTHENTICATED"
+        )
+      ) {
+        showNotification("Session expired. Please login again.", "error");
+        handleRedirectToLogin();
+      } else {
+        showNotification("Failed to load queue data", "error");
+      }
+    }
+  }, [queueError]);
 
   // Broadcast channel for real-time updates
   useEffect(() => {
@@ -305,6 +355,7 @@ const StaffDashboard = () => {
       if (event.data.type === "NEW_QUEUE") {
         showNotification(`New queue: ${event.data.data.queueNumber}`, "info");
         playNotificationSound();
+        refetchQueues();
       }
     };
     return () => channel.close();
@@ -324,8 +375,13 @@ const StaffDashboard = () => {
   };
 
   const handleCallNext = async () => {
+    if (!Array.isArray(queuesByDepartment)) {
+      showNotification("Error: Queue data is not in correct format", "error");
+      return;
+    }
+    
     const waitingCustomers = queuesByDepartment.filter(
-      (item) => item.status === "Waiting"
+      (item) => item.status?.toLowerCase() === "waiting"
     );
 
     if (!waitingCustomers.length) {
@@ -337,62 +393,62 @@ const StaffDashboard = () => {
 
     try {
       const currentServingCustomer = queuesByDepartment.find(
-        (item) => item.status === "Serving"
+        (item) => item.status?.toLowerCase() === "serving"
       );
 
-      // TODO: Uncomment when backend is ready
-      // if (currentServingCustomer) {
-      //   await updateQueueStatus({
-      //     variables: {
-      //       updateQueueInput: {
-      //         id: currentServingCustomer.id,
-      //         status: "Complete",
-      //       },
-      //     },
-      //   });
-      // }
+      if (currentServingCustomer?.queueId) {
+        await updateQueueStatus({
+          variables: {
+            updateQueueInput: {
+              queueId: parseInt(currentServingCustomer.queueId),
+              status: "Complete",
+            },
+          },
+        });
+      }
 
       const sortedQueue = [...waitingCustomers].sort((a, b) => {
         if (a.priority === "Priority" && b.priority !== "Priority") return -1;
         if (a.priority !== "Priority" && b.priority === "Priority") return 1;
-        return new Date(a.createdAt) - new Date(b.createdAt);
+        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
       });
 
       const nextCustomer = sortedQueue[0];
+      const queueId = nextCustomer.queueId || nextCustomer.id || nextCustomer.queue_id;
 
-      // TODO: Uncomment when backend is ready
-      // await updateQueueStatus({
-      //   variables: {
-      //     updateQueueInput: {
-      //       id: nextCustomer.id,
-      //       status: "Serving",
-      //     },
-      //   },
-      // });
+      if (!queueId) {
+        throw new Error("Next customer has no queueId field");
+      }
 
-      setCurrentServing(nextCustomer.id);
-      const queueNumber = `${departmentInfo.prefix}-${
-        nextCustomer.number || nextCustomer.queueNumber
-      }`;
+      await updateQueueStatus({
+        variables: {
+          updateQueueInput: {
+            queueId: parseInt(queueId),
+            status: "Serving",
+          },
+        },
+      });
+
+      setCurrentServing(queueId);
+      const queueNumber = `${departmentInfo.prefix}-${nextCustomer.number}`;
 
       showNotification(`Now serving ${queueNumber}`);
       announceCurrentServing(queueNumber, false);
     } catch (error) {
+      console.error("Call next error:", error);
       showNotification("Failed to call next citizen", "error");
+    } finally {
+      setIsCallLoading(false);
     }
-
-    setIsCallLoading(false);
   };
 
   const handleRepeatCall = () => {
     const servingCustomer = queuesByDepartment.find(
-      (item) => item.status === "Serving"
+      (item) => item.status?.toLowerCase() === "serving"
     );
+    
     if (servingCustomer) {
-      const queueNumber = `${departmentInfo.prefix}-${
-        servingCustomer.number || servingCustomer.queueNumber
-      }`;
-
+      const queueNumber = `${departmentInfo.prefix}-${servingCustomer.number}`;
       showNotification(`Repeating call for ${queueNumber}`, "info");
       announceCurrentServing(queueNumber, true);
     } else {
@@ -409,7 +465,13 @@ const StaffDashboard = () => {
     navigate("/login", { replace: true });
   };
 
-  if (isLoading) {
+  const handleSettings = () => {
+    setShowUserMenu(false);
+    // Navigate to settings or open settings modal
+    showNotification("Settings feature coming soon", "info");
+  };
+
+  if (isLoading || queueLoading) {
     return (
       <div className="staff-dashboard-container">
         <Header />
@@ -433,32 +495,54 @@ const StaffDashboard = () => {
           {notification && (
             <div className={`notification ${notification.type}`}>
               <div className="notification-content">
-                {notification.type === "success" && <CheckCircle size={20} />}
-                {notification.type === "warning" && <AlertCircle size={20} />}
-                {notification.type === "info" && <Bell size={20} />}
-                {notification.type === "error" && <AlertCircle size={20} />}
+                {notification.type === "success" && <CheckCircle size={18} />}
+                {notification.type === "warning" && <AlertCircle size={18} />}
+                {notification.type === "info" && <Bell size={18} />}
+                {notification.type === "error" && <AlertCircle size={18} />}
                 <span>{notification.message}</span>
               </div>
             </div>
           )}
 
           <div className="header">
-            <div className="header-info">
-              <h1 className="dashboard-title">{departmentInfo.name} Dashboard</h1>
+            <div className="header-left">
+              <h1 className="dashboard-title">{departmentInfo.name}</h1>
               <div className="current-time">
-                <span className="time-display">
-                  {currentTime.toLocaleTimeString()}
-                </span>
+                <Clock size={14} />
+                <span>{currentTime.toLocaleTimeString()}</span>
                 <span>•</span>
-                <span className="date-display">
-                  {currentTime.toLocaleDateString()}
-                </span>
+                <span>{currentTime.toLocaleDateString()}</span>
               </div>
             </div>
-            <button className="logout-btn" onClick={handleLogout}>
-              <LogOut size={20} />
-              Logout
-            </button>
+            
+            <div className="user-profile" ref={userMenuRef}>
+              <button 
+                className="user-profile-btn"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+              >
+                <div className="user-avatar">
+                  <User size={18} />
+                </div>
+                <div className="user-info">
+                  <span className="user-name">{staffInfo?.name || "Staff User"}</span>
+                  <span className="user-role">{staffInfo?.username || "staff"}</span>
+                </div>
+                <ChevronDown size={16} className={`chevron ${showUserMenu ? 'rotate' : ''}`} />
+              </button>
+              
+              {showUserMenu && (
+                <div className="user-dropdown">
+                  <button className="dropdown-item" onClick={handleSettings}>
+                    <Settings size={16} />
+                    <span>Settings</span>
+                  </button>
+                  <button className="dropdown-item logout" onClick={handleLogout}>
+                    <LogOut size={16} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="now-serving-section">
@@ -472,34 +556,28 @@ const StaffDashboard = () => {
                   {currentServing
                     ? (() => {
                         const servingCustomer = queuesByDepartment.find(
-                          (item) => item.id === currentServing
+                          (item) => item.queueId === currentServing
                         );
                         return servingCustomer
-                          ? `${departmentInfo.prefix}-${
-                              servingCustomer.number || servingCustomer.queueNumber
-                            }`
+                          ? `${departmentInfo.prefix}-${servingCustomer.number}`
                           : "None";
                       })()
                     : "None"}
                 </div>
                 <div className="serving-details">
-                  {currentServing
-                    ? (() => {
-                        const servingCustomer = queuesByDepartment.find(
-                          (item) => item.id === currentServing
-                        );
-                        return servingCustomer ? (
-                          <>
-                            {servingCustomer.priority === "Priority" && (
-                              <Star className="priority-star" size={16} />
-                            )}
-                            {servingCustomer.type}
-                          </>
-                        ) : (
-                          "No citizen"
-                        );
-                      })()
-                    : "No citizen"}
+                  {currentServing && (() => {
+                    const servingCustomer = queuesByDepartment.find(
+                      (item) => item.queueId === currentServing
+                    );
+                    return servingCustomer ? (
+                      <>
+                        {servingCustomer.priority === "Priority" && (
+                          <Star className="priority-star" size={14} />
+                        )}
+                        {servingCustomer.service?.serviceName || "Standard Service"}
+                      </>
+                    ) : null;
+                  })()}
                 </div>
               </div>
               <div className="action-buttons">
@@ -508,7 +586,7 @@ const StaffDashboard = () => {
                   onClick={handleCallNext}
                   disabled={isCallLoading || isSpeaking}
                 >
-                  <Bell size={18} />
+                  <Bell size={16} />
                   {isCallLoading ? "Calling..." : "Call Next"}
                 </button>
                 <button
@@ -516,7 +594,7 @@ const StaffDashboard = () => {
                   onClick={handleRepeatCall}
                   disabled={!currentServing || isSpeaking}
                 >
-                  <RotateCcw size={18} />
+                  <RotateCcw size={16} />
                   Repeat Call
                 </button>
               </div>
@@ -524,14 +602,10 @@ const StaffDashboard = () => {
           </div>
 
           <div className="statistics-section">
-            <h2 className="section-title">
-              <TrendingUp size={24} />
-              Queue Statistics
-            </h2>
             <div className="stats-grid">
               <div className="stat-card waiting">
                 <div className="stat-icon">
-                  <Clock size={28} />
+                  <Clock size={22} />
                 </div>
                 <div className="stat-content">
                   <div className="stat-number">{statistics.waiting}</div>
@@ -540,7 +614,7 @@ const StaffDashboard = () => {
               </div>
               <div className="stat-card serving">
                 <div className="stat-icon">
-                  <Users size={28} />
+                  <Users size={22} />
                 </div>
                 <div className="stat-content">
                   <div className="stat-number">{statistics.serving}</div>
@@ -549,7 +623,7 @@ const StaffDashboard = () => {
               </div>
               <div className="stat-card served">
                 <div className="stat-icon">
-                  <CheckCircle size={28} />
+                  <CheckCircle size={22} />
                 </div>
                 <div className="stat-content">
                   <div className="stat-number">{statistics.served}</div>
@@ -561,13 +635,13 @@ const StaffDashboard = () => {
 
           <div className="queue-section">
             <h2 className="section-title">
-              <Users size={24} />
-              {departmentInfo.name} Queue
+              <Users size={20} />
+              Queue List
             </h2>
             <div className="queue-container">
               <div className="queue-header">
                 <div className="queue-col">Ticket</div>
-                <div className="queue-col">Service Type</div>
+                <div className="queue-col">Service</div>
                 <div className="queue-col">Priority</div>
                 <div className="queue-col">Status</div>
               </div>
@@ -587,16 +661,10 @@ const StaffDashboard = () => {
                       </span>
                     </div>
                     <div className="queue-col">
-                      <span className={`badge ${item.type?.toLowerCase() || ""}`}>
-                        {item.type}
-                      </span>
+                      <span className="service-name">{item.type}</span>
                     </div>
                     <div className="queue-col">
-                      <span
-                        className={`badge priority ${
-                          item.priority?.toLowerCase() || ""
-                        }`}
-                      >
+                      <span className={`badge priority ${item.priority?.toLowerCase() || ""}`}>
                         {item.priority}
                       </span>
                     </div>
@@ -609,7 +677,7 @@ const StaffDashboard = () => {
                 ))}
                 {queueList.length === 0 && (
                   <div className="empty-queue">
-                    <Users size={48} className="empty-icon" />
+                    <Users size={40} className="empty-icon" />
                     <p>No citizens in queue</p>
                   </div>
                 )}

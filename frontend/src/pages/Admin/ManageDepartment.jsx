@@ -20,7 +20,7 @@ const ManageDepartment = ({ departments, setDepartments }) => {
     prefix: "",
   });
 
-  const { data, refetch } = useQuery(GET_DEPARTMENTS);
+  const { data, refetch } = useQuery(GET_DEPARTMENTS, { errorPolicy: 'all' });
 
   const [updateDepartment] = useMutation(UPDATE_DEPARTMENT, {
     onCompleted: () => {
@@ -41,7 +41,7 @@ const ManageDepartment = ({ departments, setDepartments }) => {
   });
 
   useEffect(() => {
-    if (data && data.departments) {
+    if (Array.isArray(data?.departments)) {
       setDepartments(data.departments);
     }
   }, [data, setDepartments]);
@@ -54,7 +54,7 @@ const ManageDepartment = ({ departments, setDepartments }) => {
         const result = await updateDepartment({
           variables: {
             updateDepartmentInput: {
-              departmentId: editingDepartment.departmentId, // ✅ use correct field name
+              departmentId: editingDepartment.departmentId,
               departmentName: newDepartment.name,
               prefix: newDepartment.prefix,
             },
@@ -73,6 +73,12 @@ const ManageDepartment = ({ departments, setDepartments }) => {
                 : dept
             )
           );
+          Swal.fire({
+            icon: "success",
+            title: "Updated!",
+            text: "Department updated successfully.",
+            confirmButtonColor: "#3085d6",
+          });
         }
       } catch (error) {
         
@@ -93,6 +99,12 @@ const ManageDepartment = ({ departments, setDepartments }) => {
         const createdDept = result.data?.createDepartment;
         if (createdDept) {
           setDepartments([...departments, createdDept]);
+          Swal.fire({
+            icon: "success",
+            title: "Created!",
+            text: "New department has been created.",
+            confirmButtonColor: "#3085d6",
+          });
         }
       } catch (error) {
         Swal.fire({
@@ -118,42 +130,51 @@ const ManageDepartment = ({ departments, setDepartments }) => {
     });
     setShowDepartmentForm(true);
   };
-  const handleDeleteDepartment = async (departmentId) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "This department will be permanently deleted.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-    });
+const handleDeleteDepartment = async (departmentId) => {
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "This department will be permanently deleted.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+  });
 
-    if (result.isConfirmed) {
-      try {
-        await deleteStaff({
-          variables: { departmentId: departmentId },
-        });
+  if (result.isConfirmed) {
+    try {
+      await deleteDepartment({
+        variables: { removeDepartmentId: parseInt(departmentId) },
+      });
 
-        setStaff(
-          staff.filter((member) => member.departmentId !== departmentId)
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Deleted!",
-          text: "The department has been successfully deleted.",
-          confirmButtonColor: "#3085d6",
-        });
-      } catch (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: "Something went wrong while deleting the staff member!",
-        });
-      }
+      
+      setDepartments(
+        departments.filter((dept) => dept.departmentId !== departmentId)
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "The department has been successfully deleted.",
+        confirmButtonColor: "#3085d6",
+      });
+    } catch (error) {
+      
+      const errorMessage =
+        error?.graphQLErrors?.[0]?.message ||
+        error?.message ||
+        "Something went wrong while deleting the department!";
+
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: errorMessage,
+        confirmButtonColor: "#3085d6",
+      });
     }
-  };
+  }
+};
 
   const handleCancelForm = () => {
     setShowDepartmentForm(false);

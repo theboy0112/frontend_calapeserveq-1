@@ -124,17 +124,17 @@ const QueueModal = ({ queueNumber, department, onClose }) => {
           </h2>
         </div>
 
-        <div className="queue-display-section">
-          <div className="queue-label" aria-label="Your queue number is">
-            YOUR QUEUE NUMBER
-          </div>
-          <div
-            className="queue-number-display"
-            aria-live="polite"
-            aria-label={`Queue number ${queueNumber}`}
-          >
-            {queueNumber}
-          </div>
+          <div className="queue-display-section">
+            <div className="queue-label" aria-label="Your queue number is">
+              YOUR QUEUE NUMBER
+            </div>
+            <div
+              className="queue-number-display"
+              aria-live="polite"
+              aria-label={`Queue number ${queueNumber}`}
+            >
+              {queueNumber}
+            </div>
           <div className="queue-pulse-ring" aria-hidden="true"></div>
         </div>
 

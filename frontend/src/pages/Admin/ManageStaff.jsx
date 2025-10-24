@@ -147,41 +147,40 @@ const ManageStaff = () => {
     setShowStaffForm(true);
   };
 
- const handleDeleteStaff = async (staffId) => {
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "This staff member will be permanently deleted.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-    cancelButtonText: "Cancel",
-  });
+  const handleDeleteStaff = async (staffId) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This staff member will be permanently deleted.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
 
-  if (result.isConfirmed) {
-    try {
-      await deleteStaff({
-        variables: { staffId: staffId },
-      });
+    if (result.isConfirmed) {
+      try {
+        await deleteStaff({ variables: { staffId: parseInt(staffId) } });
+        await refetchStaff();
 
-      setStaff(staff.filter((member) => member.staffId !== staffId));
+        setStaff(staff.filter((member) => member.staffId !== Number(staffId)));
 
-      Swal.fire({
-        icon: "success",
-        title: "Deleted!",
-        text: "The staff member has been successfully deleted.",
-        confirmButtonColor: "#3085d6",
-      });
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Something went wrong while deleting the staff member!",
-      });
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "The staff member has been successfully deleted.",
+          confirmButtonColor: "#3085d6",
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Something went wrong while deleting the staff member!",
+        });
+      }
     }
-  }
-};
+  };
 
   const handleCancelForm = () => {
     setShowStaffForm(false);
@@ -208,7 +207,7 @@ const ManageStaff = () => {
         <div className="header-content">
           <h2>Staff Management</h2>
           <p className="header-subtitle">
-            Manage staff members and their roles
+            Manage staff members
           </p>
         </div>
         <button

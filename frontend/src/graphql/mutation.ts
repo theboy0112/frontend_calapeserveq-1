@@ -24,12 +24,10 @@ export const LOGIN = gql`
 `;
 
 export const CREATE_DEPARTMENT = gql`
-  mutation CreateDepartment($createDepartmentInput: CreateDepartmentInput!) {
+  mutation Mutation($createDepartmentInput: CreateDepartmentInput!) {
     createDepartment(createDepartmentInput: $createDepartmentInput) {
-      departmentId
       departmentName
       prefix
-      createdAt
     }
   }
 `;
@@ -97,7 +95,7 @@ export const UPDATE_ADMIN_PROFILE = gql`
 export const DELETE_STAFF = gql`
   mutation RemoveStaff($staffId: Int!) {
     removeStaff(staffId: $staffId) {
-      departmentId
+      staffId
     }
   }
 `;
@@ -111,10 +109,16 @@ export const CREATE_SERVICE = gql`
 export const UPDATE_SERVICE = gql`
   mutation UpdateService($updateServiceInput: UpdateServiceInput!) {
     updateService(updateServiceInput: $updateServiceInput) {
+      serviceId
       serviceName
+      department {
+        departmentId
+        departmentName
+      }
     }
   }
 `;
+
 export const DELETE_SERVICE = gql`
   mutation RemoveService($serviceId: Int!) {
     removeService(serviceId: $serviceId) {
@@ -124,32 +128,22 @@ export const DELETE_SERVICE = gql`
 `;
 export const CREATE_QUEUE = gql`
   mutation CreateQueue($createQueueInput: CreateQueueInput!) {
-    createQueue(createQueueInput: $createQueueInput) {
-      department {
-        departmentName
-      }
-      service {
-        serviceName
-      }
+    createQueue(createQueueInput: $createQueueInput)
+  }
+`;
+export const UPDATE_QUEUE_STATUS = gql`
+  mutation UpdateQueue($updateQueueInput: UpdateQueueInput!) {
+    updateQueue(updateQueueInput: $updateQueueInput) {
+      queueId
       status
-      priority
-      number
     }
   }
 `;
-
 
 export const CREATE_ROLE = gql`
   mutation CreateRole($createRoleInput: CreateRoleInput!) {
     createRole(createRoleInput: $createRoleInput) {
       roleName
-    }
-  }
-`;
-export const UPDATE_QUEUE = gql`
-  mutation UpdateQueue($updateQueueInput: UpdateQueueInput!) {
-    updateQueue(updateQueueInput: $updateQueueInput) {
-      status
     }
   }
 `;

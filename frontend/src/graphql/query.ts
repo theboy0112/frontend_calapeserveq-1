@@ -17,7 +17,6 @@ export const GET_DEPARTMENTS = gql`
       departmentId
       departmentName
       prefix
-      createdAt
     }
   }
 `;
@@ -69,21 +68,43 @@ export const GET_SERVICES = gql`
     }
   }
 `;
-export const GET_QUEUE = gql`
-  query Department($queueId: Int!) {
-    queue(id: $queueId) {
-      Department {
+export const GET_QUEUES_BY_DEPARTMENT = gql`
+  query QueueByDepartment($departmentId: Int!) {
+    QueueByDepartment(departmentId: $departmentId) {
+      queueId
+      number
+      priority
+      status
+      createdAt
+      department {
+        departmentId
         departmentName
         prefix
       }
-      number
-      priority
-      queueId
-      status
-      type
+      service {
+        serviceId
+        serviceName
+      }
     }
   }
 `;
+
+// export const GET_QUEUES_BY_DEPARTMENT = gql`
+// query QueueByDepartment($departmentId: Int!) {
+//   QueueByDepartment(departmentId: $departmentId) {
+//     department {
+//       departmentId
+//       departmentName
+//     }
+//     service {
+//       serviceName
+//     }
+//     number
+//     priority
+//     status
+//   }
+// }
+// `;
 
 export const GET_ROLES = gql`
   query GetAllRoles {

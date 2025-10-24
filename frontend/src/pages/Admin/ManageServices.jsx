@@ -59,7 +59,6 @@ const ManageServices = () => {
     }
   }, [servicesData]);
 
-  // Group services by department
   const groupedServices = services.reduce((acc, service) => {
     const deptId = service.department?.departmentId || "unassigned";
     const deptName =
@@ -110,11 +109,11 @@ const ManageServices = () => {
         });
       } catch (error) {
         Swal.fire({
-                 icon: "error",
-                 title: "Oops...",
-                 text: "Something went wrong!",
-                 footer: '<a href="#">Why do I have this issue?</a>',
-               });
+          icon: "error",
+          title: "Oops...",
+          text: "Something went wrong!",
+          footer: '<a href="#">Why do I have this issue?</a>',
+        });
       }
       setEditingService(null);
     } else {
@@ -128,12 +127,12 @@ const ManageServices = () => {
           },
         });
       } catch (error) {
-         Swal.fire({
-                  icon: "error",
-                  title: "Oops...",
-                  text: "Something went wrong!",
-                  footer: '<a href="#">Why do I have this issue?</a>',
-                });
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Something went wrong!",
+          footer: '<a href="#">Why do I have this issue?</a>',
+        });
       }
     }
 
@@ -141,14 +140,46 @@ const ManageServices = () => {
     setShowServiceForm(false);
   };
 
-  const handleEditService = (service) => {
-    setEditingService(service);
-    setNewService({
-      serviceName: service.serviceName,
-      departmentId: service.department?.departmentId || "",
-    });
-    setShowServiceForm(true);
-  };
+const handleEditService = async (service) => {
+  const result = await Swal.fire({
+    title: "Edit Service?",
+    text: `Do you want to edit "${service.serviceName}"?`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, edit it!",
+    cancelButtonText: "Cancel",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      setEditingService(service);
+      setNewService({
+        serviceName: service.serviceName,
+        departmentId: service.department?.departmentId || "",
+      });
+      setShowServiceForm(true);
+
+      
+      Swal.fire({
+        icon: "success",
+        title: "Editing Mode Activated!",
+        text: "You can now update this service’s details.",
+        confirmButtonColor: "#3085d6",
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong while preparing the edit form!",
+      });
+    }
+  }
+};
+
+
 
   const handleDeleteService = async (serviceId) => {
     const result = await Swal.fire({
@@ -164,23 +195,26 @@ const ManageServices = () => {
 
     if (result.isConfirmed) {
       try {
-        await deleteStaff({
+        await deleteService({
           variables: { serviceId: serviceId },
         });
 
-        setStaff(staff.filter((member) => member.serviceId !== serviceId));
+        setServices(
+          services.filter((service) => service.serviceId !== serviceId)
+        );
 
         Swal.fire({
           icon: "success",
           title: "Deleted!",
-          text: "The staff member has been successfully deleted.",
+          text: "The service has been successfully deleted.",
           confirmButtonColor: "#3085d6",
         });
       } catch (error) {
+        console.error(error);
         Swal.fire({
           icon: "error",
           title: "Oops...",
-          text: "Something went wrong while deleting the staff member!",
+          text: "Something went wrong while deleting the service!",
         });
       }
     }
