@@ -63,7 +63,6 @@ export const CREATE_STAFF = gql`
       }
       staffId
       staffUsername
-      staffPassword
       staffFirstname
       staffLastname
     }

@@ -522,14 +522,6 @@ const StaffDashboard = () => {
                 <span>{currentTime.toLocaleDateString()}</span>
               </div>
             </div>
-            
-            <button 
-              className="create-queue-btn"
-              onClick={() => setShowQueueForm(true)}
-            >
-              <Plus size={18} />
-              Create Queue
-            </button>
 
             <div className="user-profile" ref={userMenuRef}>
               <button 

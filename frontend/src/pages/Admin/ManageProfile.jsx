@@ -9,10 +9,9 @@ import {
   FaSave,
   FaEye,
   FaEyeSlash,
-  FaUserCircle,
 } from "react-icons/fa";
-import { MdEmail } from "react-icons/md";
 import Swal from "sweetalert2";
+import logo from "/calapelogo.png";
 
 const ManageProfile = () => {
   const [profileData, setProfileData] = useState({
@@ -28,7 +27,6 @@ const ManageProfile = () => {
   const [editingPassword, setEditingPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
- 
   const staffId = parseInt(sessionStorage.getItem("staffId")) || 1;
 
   const { data: adminData, loading, error, refetch } = useQuery(GET_ADMIN_PROFILE, {
@@ -207,8 +205,8 @@ const ManageProfile = () => {
         {/* Profile Avatar Section */}
         <div className="profile-avatar-section">
           <div className="avatar-wrapper">
-            <div className="profile-avatar">
-              <FaUserCircle />
+            <div className="profile-logo">
+              <img src={logo} alt="Calape Logo" className="calape-logo" />
             </div>
             <div className="avatar-info">
               <h3>

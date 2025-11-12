@@ -16,6 +16,8 @@ import QueueModal from "./QueueModal";
 import { useNavigate } from "react-router-dom";
 import { GET_DEPARTMENTS, GET_SERVICES } from "../../graphql/query";
 import { CREATE_QUEUE } from "../../graphql/mutation";
+import Header from "../../components/Header/Header";
+import Footer from "../../components/Footer/Footer";
 
 const QueueForm = ({ onSuccess }) => {
   const navigate = useNavigate();
@@ -89,6 +91,34 @@ const QueueForm = ({ onSuccess }) => {
       setFilteredServices([]);
     }
   }, [formData.departmentId, servicesData]);
+
+  // Auto-advance to next step when selection is made
+  useEffect(() => {
+    if (currentStep === 1 && formData.departmentId) {
+      const timer = setTimeout(() => {
+        setCurrentStep(2);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [formData.departmentId, currentStep]);
+
+  useEffect(() => {
+    if (currentStep === 2 && formData.serviceId) {
+      const timer = setTimeout(() => {
+        setCurrentStep(3);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [formData.serviceId, currentStep]);
+
+  useEffect(() => {
+    if (currentStep === 3 && formData.priority) {
+      const timer = setTimeout(() => {
+        setCurrentStep(4);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [formData.priority, currentStep]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -268,277 +298,290 @@ const QueueForm = ({ onSuccess }) => {
     !hasServicesArray
   ) {
     return (
-      <div className="home-container">
-        <div className="error-message">
-          <p>Error loading data. Please refresh the page.</p>
-          <p>
-            {(departmentsError?.graphQLErrors?.[0]?.message ||
-              departmentsError?.message ||
-              servicesError?.graphQLErrors?.[0]?.message ||
-              servicesError?.message) ??
-              ""}
-          </p>
+      <div className="queue-page-wrapper">
+        <Header />
+        <div className="home-container">
+          <div className="error-message">
+            <p>Error loading data. Please refresh the page.</p>
+            <p>
+              {(departmentsError?.graphQLErrors?.[0]?.message ||
+                departmentsError?.message ||
+                servicesError?.graphQLErrors?.[0]?.message ||
+                servicesError?.message) ??
+                ""}
+            </p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="home-container">
-      <div className="queue-form-container">
-        <div className="form-header">
-          <div className="progress-container">
-            <div className="progress-steps">
-              {[1, 2, 3, 4].map((step) => (
+    <div className="queue-page-wrapper">
+      <Header />
+      <div className="home-container">
+        <div className="queue-form-container">
+          <div className="form-header">
+            <div className="progress-container">
+              <div className="progress-steps">
+                {[1, 2, 3, 4].map((step) => (
+                  <div
+                    key={step}
+                    className={`progress-step ${currentStep >= step ? "active" : ""} ${currentStep > step ? "completed" : ""}`}
+                  >
+                    <div className="step-circle">
+                      {currentStep > step ? <Check size={14} /> : step}
+                    </div>
+                    <div className="step-label">Step {step}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="progress-bar">
                 <div
-                  key={step}
-                  className={`progress-step ${currentStep >= step ? "active" : ""} ${currentStep > step ? "completed" : ""}`}
-                >
-                  <div className="step-circle">
-                    {currentStep > step ? <Check size={14} /> : step}
-                  </div>
-                  <div className="step-label">Step {step}</div>
-                </div>
-              ))}
+                  className="progress-fill"
+                  style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
+                ></div>
+              </div>
             </div>
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
-              ></div>
+
+            <div className="form-title-section">
+              <h2 className="form-title">{getStepTitle()}</h2>
+              <p className="form-subtitle">{getStepSubtitle()}</p>
             </div>
           </div>
 
-          <div className="form-title-section">
-            <h2 className="form-title">{getStepTitle()}</h2>
-            <p className="form-subtitle">{getStepSubtitle()}</p>
-          </div>
-        </div>
+          <div className="form-wrapper">
+            {error && (
+              <div className="error-message">
+                <p>{error}</p>
+              </div>
+            )}
 
-        <div className="form-wrapper">
-          {error && (
-            <div className="error-message">
-              <p>{error}</p>
-            </div>
-          )}
+            <div className="queue-form">
+              <div className="form-slides">
+                {currentStep === 1 && (
+                  <div className="form-slide active">
+                    <div className="form-section">
+                      <div className="section-header">
+                        <h3>
+                          <Building2 className="section-icon" size={20} />
+                          Select Department
+                        </h3>
+                      </div>
 
-          <div className="queue-form">
-            <div className="form-slides">
-              {currentStep === 1 && (
-                <div className="form-slide active">
-                  <div className="form-section">
-                    <div className="section-header">
-                      <h3>
-                        <Building2 className="section-icon" size={20} />
-                        Select Department
-                      </h3>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="departmentId">Department</label>
-                      <div className="select-wrapper">
-                        <select
-                          id="departmentId"
-                          name="departmentId"
-                          value={formData.departmentId}
-                          onChange={handleChange}
-                          required
-                          className="form-select"
-                          disabled={departmentsLoading}
-                        >
-                          <option value="" disabled>
-                            {departmentsLoading
-                              ? "Loading departments..."
-                              : "-- Select Department --"}
-                          </option>
-                          {departmentOptions?.map((dept) => (
-                            <option
-                              key={dept.departmentId}
-                              value={dept.departmentId}
-                            >
-                              {dept.departmentName}
+                      <div className="form-group">
+                        <label htmlFor="departmentId">Department</label>
+                        <div className="select-wrapper">
+                          <select
+                            id="departmentId"
+                            name="departmentId"
+                            value={formData.departmentId}
+                            onChange={handleChange}
+                            required
+                            className="form-select"
+                            disabled={departmentsLoading}
+                          >
+                            <option value="" disabled>
+                              {departmentsLoading
+                                ? "Loading departments..."
+                                : "-- Select Department --"}
                             </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="select-arrow" size={14} />
+                            {departmentOptions?.map((dept) => (
+                              <option
+                                key={dept.departmentId}
+                                value={dept.departmentId}
+                              >
+                                {dept.departmentName}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="select-arrow" size={14} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {currentStep === 2 && (
-                <div className="form-slide active">
-                  <div className="form-section">
-                    <div className="section-header">
-                      <h3>
-                        <Users className="section-icon" size={20} />
-                        Type of Service
-                      </h3>
-                    </div>
+                {currentStep === 2 && (
+                  <div className="form-slide active">
+                    <div className="form-section">
+                      <div className="section-header">
+                        <h3>
+                          <Users className="section-icon" size={20} />
+                          Type of Service
+                        </h3>
+                      </div>
 
-                    <div className="form-group">
-                      <label htmlFor="serviceId">Service Type</label>
-                      <div className="select-wrapper">
-                        <select
-                          id="serviceId"
-                          name="serviceId"
-                          value={formData.serviceId}
-                          onChange={handleChange}
-                          required
-                          className="form-select"
-                          disabled={servicesLoading || !formData.departmentId}
-                        >
-                          <option value="" disabled>
-                            {!formData.departmentId
-                              ? "Please select a department first"
-                              : servicesLoading
-                                ? "Loading services..."
-                                : "-- Select Service Type --"}
-                          </option>
-                          {filteredServices.map((service) => (
-                            <option
-                              key={service.serviceId}
-                              value={service.serviceId}
-                            >
-                              {service.serviceName}
+                      <div className="form-group">
+                        <label htmlFor="serviceId">Service Type</label>
+                        <div className="select-wrapper">
+                          <select
+                            id="serviceId"
+                            name="serviceId"
+                            value={formData.serviceId}
+                            onChange={handleChange}
+                            required
+                            className="form-select"
+                            disabled={servicesLoading || !formData.departmentId}
+                          >
+                            <option value="" disabled>
+                              {!formData.departmentId
+                                ? "Please select a department first"
+                                : servicesLoading
+                                  ? "Loading services..."
+                                  : "-- Select Service Type --"}
                             </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="select-arrow" size={14} />
+                            {filteredServices.map((service) => (
+                              <option
+                                key={service.serviceId}
+                                value={service.serviceId}
+                              >
+                                {service.serviceName}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="select-arrow" size={14} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {currentStep === 3 && (
-                <div className="form-slide active">
-                  <div className="form-section">
-                    <div className="section-header">
-                      <h3>
-                        <Users className="section-icon" size={20} />
-                        Priority Level
-                      </h3>
-                    </div>
+                {currentStep === 3 && (
+                  <div className="form-slide active">
+                    <div className="form-section">
+                      <div className="section-header">
+                        <h3>
+                          <Users className="section-icon" size={20} />
+                          Priority Level
+                        </h3>
+                      </div>
 
-                    <div className="form-group">
-                      <label htmlFor="priority">Priority Level</label>
-                      <div className="select-wrapper">
-                        <select
-                          id="priority"
-                          name="priority"
-                          value={formData.priority}
-                          onChange={handleChange}
-                          required
-                          className="form-select"
-                        >
-                          <option value="" disabled>
-                            -- Select Priority --
-                          </option>
-                          <option value="Regular">Regular</option>
-                          <option value="Priority">
-                            Priority (Senior/PWD/Pregnant)
-                          </option>
-                        </select>
-                        <ChevronDown className="select-arrow" size={14} />
+                      <div className="form-group">
+                        <label htmlFor="priority">Priority Level</label>
+                        <div className="select-wrapper">
+                          <select
+                            id="priority"
+                            name="priority"
+                            value={formData.priority}
+                            onChange={handleChange}
+                            required
+                            className="form-select"
+                          >
+                            <option value="" disabled>
+                              -- Select Priority --
+                            </option>
+                            <option value="Regular">Regular</option>
+                            <option value="Priority">
+                              Priority (Senior/PWD/Pregnant)
+                            </option>
+                          </select>
+                          <ChevronDown className="select-arrow" size={14} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {currentStep === 4 && (
-                <div className="form-slide active">
-                  <div className="form-section">
-                    <div className="section-header">
-                      <h3>Review Your Information</h3>
-                    </div>
+                {currentStep === 4 && (
+                  <div className="form-slide active">
+                    <div className="form-section">
+                      <div className="section-header">
+                        <h3>Review Your Information</h3>
+                      </div>
 
-                    <div className="review-info">
-                      <div className="review-item">
-                        <strong>Department:</strong>
-                        <span>{getSelectedDepartmentName()}</span>
-                      </div>
-                      <div className="review-item">
-                        <strong>Service Type:</strong>
-                        <span>{getSelectedServiceName()}</span>
-                      </div>
-                      <div className="review-item">
-                        <strong>Priority Level:</strong>
-                        <span>{formData.priority}</span>
+                      <div className="review-info">
+                        <div className="review-item">
+                          <strong>Department:</strong>
+                          <span>{getSelectedDepartmentName()}</span>
+                        </div>
+                        <div className="review-item">
+                          <strong>Service Type:</strong>
+                          <span>{getSelectedServiceName()}</span>
+                        </div>
+                        <div className="review-item">
+                          <strong>Priority Level:</strong>
+                          <span>{formData.priority}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Form Actions */}
-            <div className="form-actions">
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  className="previous-btn"
-                  onClick={handlePrevious}
-                  disabled={isSubmitting}
-                >
-                  <ArrowLeft size={16} />
-                  Previous
-                </button>
-              )}
-
-              {currentStep < 4 ? (
-                <button type="button" className="next-btn" onClick={handleNext}>
-                  Next
-                  <ArrowRight size={16} />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={`submit-btn ${isSubmitting ? "loading" : ""}`}
-                  disabled={isSubmitting}
-                  onClick={handleSubmit}
-                >
-                  {!isSubmitting ? (
-                    <>
-                      <span>Generate Queue Number</span>
-                      <ArrowRight size={18} />
-                    </>
-                  ) : (
-                    <>
-                      <Loader2 className="spinner" size={18} />
-                      <span>Processing...</span>
-                    </>
+              {/* Form Actions */}
+              <div className="form-actions">
+                <div className="actions-left">
+                  {currentStep > 1 && (
+                    <button
+                      type="button"
+                      className="previous-btn"
+                      onClick={handlePrevious}
+                      disabled={isSubmitting}
+                    >
+                      <ArrowLeft size={16} />
+                      Previous
+                    </button>
                   )}
-                </button>
-              )}
+                </div>
 
-              {/* Reset button only shows from step 2 onwards */}
-              {currentStep > 1 && (
-                <button type="button" className="reset-btn" onClick={resetForm}>
-                  <RotateCcw size={16} />
-                  Reset
-                </button>
-              )}
+                <div className="actions-center">
+                  {currentStep < 4 ? (
+                    <button type="button" className="next-btn" onClick={handleNext}>
+                      Next
+                      <ArrowRight size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`submit-btn ${isSubmitting ? "loading" : ""}`}
+                      disabled={isSubmitting}
+                      onClick={handleSubmit}
+                    >
+                      {!isSubmitting ? (
+                        <>
+                          <span>Generate Queue Number</span>
+                          <ArrowRight size={18} />
+                        </>
+                      ) : (
+                        <>
+                          <Loader2 className="spinner" size={18} />
+                          <span>Processing...</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                <div className="actions-right">
+                  {currentStep > 1 && (
+                    <button type="button" className="reset-btn" onClick={resetForm}>
+                      <RotateCcw size={16} />
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {showModal && (
-          <QueueModal
-            queueNumber={queueNumber}
-            department={getSelectedDepartmentName()}
-            onClose={() => {
-              setShowModal(false);
-              resetForm();
-              if (onSuccess) {
-                onSuccess();
-              }
-            }}
-          />
-        )}
+          {showModal && (
+            <QueueModal
+              queueNumber={queueNumber}
+              department={getSelectedDepartmentName()}
+              onClose={() => {
+                setShowModal(false);
+                resetForm();
+                if (onSuccess) {
+                  onSuccess();
+                }
+              }}
+            />
+          )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };

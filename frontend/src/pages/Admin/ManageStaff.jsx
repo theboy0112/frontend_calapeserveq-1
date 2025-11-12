@@ -6,15 +6,13 @@ import {
   UPDATE_STAFF,
   DELETE_STAFF,
 } from "../../graphql/mutation";
-import { GET_ALL_STAFF, GET_DEPARTMENTS } from "../../graphql/query";
+import { GET_ALL_STAFF, GET_DEPARTMENTS, GET_ROLES } from "../../graphql/query";
 import {
   FaPlus,
   FaEdit,
   FaTrash,
   FaTimes,
   FaUserFriends,
-  FaEye,
-  FaEyeSlash,
 } from "react-icons/fa";
 import { IoMdSettings } from "react-icons/io";
 import { HiUser } from "react-icons/hi";
@@ -24,17 +22,17 @@ const ManageStaff = () => {
   const [staff, setStaff] = useState([]);
   const [showStaffForm, setShowStaffForm] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
   const [newStaff, setNewStaff] = useState({
     firstName: "",
     lastName: "",
     username: "",
-    password: "",
     departmentId: "",
+    roleId: "",
   });
 
   const { data: staffData, refetch: refetchStaff } = useQuery(GET_ALL_STAFF);
   const { data: departmentsData } = useQuery(GET_DEPARTMENTS);
+  const { data: rolesData } = useQuery(GET_ROLES);
 
   const [createStaff] = useMutation(CREATE_STAFF, {
     onCompleted: (data) => {
@@ -43,7 +41,7 @@ const ManageStaff = () => {
       Swal.fire({
         icon: "success",
         title: "Staff member created!",
-        text: "The new staff record was added successfully.",
+        text: "The new staff record was added successfully. Temporary password has been sent to their email.",
         confirmButtonColor: "#3085d6",
       });
     },
@@ -71,6 +69,11 @@ const ManageStaff = () => {
       setStaff(staffData.findAll);
     }
   }, [staffData]);
+
+  // Filter roles to exclude Admin role (assuming Admin has roleId of 1)
+  const filteredRoles = rolesData?.roles?.filter(
+    (role) => role.roleName.toLowerCase() !== "admin"
+  ) || [];
 
   const handleAddStaff = async (e) => {
     e.preventDefault();
@@ -109,8 +112,7 @@ const ManageStaff = () => {
               staffFirstname: newStaff.firstName,
               staffLastname: newStaff.lastName,
               staffUsername: newStaff.username,
-              staffPassword: newStaff.password,
-              roleId: 2, // Default staff role ID
+              roleId: parseInt(newStaff.roleId),
               departmentId: parseInt(newStaff.departmentId),
             },
           },
@@ -129,8 +131,8 @@ const ManageStaff = () => {
       firstName: "",
       lastName: "",
       username: "",
-      password: "",
       departmentId: "",
+      roleId: "",
     });
     setShowStaffForm(false);
   };
@@ -141,8 +143,8 @@ const ManageStaff = () => {
       firstName: staffMember.staffFirstname || "",
       lastName: staffMember.staffLastname || "",
       username: staffMember.staffUsername,
-      password: "",
       departmentId: staffMember.department?.departmentId?.toString() || "",
+      roleId: "",
     });
     setShowStaffForm(true);
   };
@@ -185,13 +187,12 @@ const ManageStaff = () => {
   const handleCancelForm = () => {
     setShowStaffForm(false);
     setEditingStaff(null);
-    setShowPassword(false);
     setNewStaff({
       firstName: "",
       lastName: "",
       username: "",
-      password: "",
       departmentId: "",
+      roleId: "",
     });
   };
 
@@ -207,7 +208,7 @@ const ManageStaff = () => {
         <div className="header-content">
           <h2>Staff Management</h2>
           <p className="header-subtitle">
-            Manage staff members
+            Manage staff members and their roles
           </p>
         </div>
         <button
@@ -258,27 +259,43 @@ const ManageStaff = () => {
               </div>
 
               {!editingStaff && (
-                <div className="form-group">
-                  <label>Department</label>
-                  <select
-                    value={newStaff.departmentId}
-                    onChange={(e) =>
-                      setNewStaff({ ...newStaff, departmentId: e.target.value })
-                    }
-                    required
-                  >
-                    <option value="">Select Department</option>
-                    {departmentsData?.departments?.map((dept) => (
-                      <option key={dept.departmentId} value={dept.departmentId}>
-                        {dept.departmentName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {!editingStaff && (
                 <>
+                  <div className="form-group">
+                    <label>Department</label>
+                    <select
+                      value={newStaff.departmentId}
+                      onChange={(e) =>
+                        setNewStaff({ ...newStaff, departmentId: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="">Select Department</option>
+                      {departmentsData?.departments?.map((dept) => (
+                        <option key={dept.departmentId} value={dept.departmentId}>
+                          {dept.departmentName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Role</label>
+                    <select
+                      value={newStaff.roleId}
+                      onChange={(e) =>
+                        setNewStaff({ ...newStaff, roleId: e.target.value })
+                      }
+                      required
+                    >
+                      <option value="">Select Role</option>
+                      {filteredRoles.map((role) => (
+                        <option key={role.roleId} value={role.roleId}>
+                          {role.roleName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="form-group">
                     <label>Username</label>
                     <input
@@ -290,28 +307,6 @@ const ManageStaff = () => {
                       placeholder="Enter username"
                       required
                     />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Password</label>
-                    <div className="password-input-wrapper">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        value={newStaff.password}
-                        onChange={(e) =>
-                          setNewStaff({ ...newStaff, password: e.target.value })
-                        }
-                        placeholder="Enter password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="password-toggle-btn"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                      </button>
-                    </div>
                   </div>
                 </>
               )}
@@ -348,7 +343,7 @@ const ManageStaff = () => {
                 <th>
                   <div className="th-content">
                     <HiUser className="th-icon" />
-                    Staff Member
+                    Full Name
                   </div>
                 </th>
                 <th>

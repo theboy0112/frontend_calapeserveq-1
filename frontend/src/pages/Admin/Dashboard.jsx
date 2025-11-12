@@ -24,6 +24,8 @@ import {
   GET_ALL_STAFF,
 } from "../../graphql/query";
 
+import logo from "/calapelogo.png";
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -200,8 +202,8 @@ const AdminDashboard = () => {
             </div>
             {sidebarOpen && (
               <>
-                <div className="admin-icon-wrapper">
-                  <FiUser size={32} />
+                <div className="logo-wrapper">
+                  <img src={logo} alt="Calape Logo" className="calape-logo" />
                 </div>
                 <h3>Admin Panel</h3>
               </>

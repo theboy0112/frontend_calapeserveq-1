@@ -33,10 +33,15 @@ const Login = () => {
       if (loginData?.success) {
         const access_token = loginData.access_token || "";
 
-        const role =
+        let role =
           loginData.role?.trim().toLowerCase() ||
           loginData.staff?.role?.roleName?.trim().toLowerCase() ||
           "";
+
+        // Normalize role names for consistency
+        if (role.includes("queue") && role.includes("staff")) {
+          role = "queuestaff";
+        }
 
         sessionStorage.clear();
         localStorage.clear();
@@ -50,7 +55,34 @@ const Login = () => {
           setTimeout(() => {
             navigate("/admin/dashboard", { replace: true });
           }, 100);
+        } else if (role === "queuestaff") {
+          // Queue Staff login logic
+          const staff = loginData.staff || {};
+          const department = staff.department || {};
+
+          const staffInfo = {
+            id: staff.staffId || Date.now(),
+            username: staff.staffUsername || username,
+            firstName: staff.staffFirstname || "",
+            lastName: staff.staffLastname || "",
+            role: "queuestaff",
+            department: department.departmentId ? {
+              id: parseInt(department.departmentId),
+              name: department.departmentName?.trim() || "",
+              prefix: department.prefix?.trim() || "",
+            } : null,
+            token: access_token,
+            loginTime: new Date().toISOString(),
+          };
+
+          sessionStorage.setItem("staffInfo", JSON.stringify(staffInfo));
+          sessionStorage.setItem("isQueueStaffLoggedIn", "true");
+
+          setTimeout(() => {
+            navigate("/queuestaff/dashboard", { replace: true });
+          }, 100);
         } else {
+          // Regular Staff login logic
           const staff = loginData.staff || {};
           const department = staff.department || {};
 
@@ -78,8 +110,6 @@ const Login = () => {
           };
 
           sessionStorage.setItem("staffInfo", JSON.stringify(staffInfo));
-
-          const storedData = sessionStorage.getItem("staffInfo");
 
           setTimeout(() => {
             navigate("/staff/dashboard", { replace: true });

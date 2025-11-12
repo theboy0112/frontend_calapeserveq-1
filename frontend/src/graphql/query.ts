@@ -30,6 +30,9 @@ export const GET_ALL_STAFF = gql`
         departmentName
         prefix
       }
+      role {
+      roleName
+    }
     }
   }
 `;
@@ -89,18 +92,15 @@ export const GET_QUEUES_BY_DEPARTMENT = gql`
   }
 `;
 
-// export const GET_ALL_QUEUES_DEPARTMENT = gql`
-// query QueueByDepartment($departmentId: Int!) {
-//   QueueByDepartment(departmentId: $departmentId) {
-//     department {
-//       departmentId
-//       departmentName
-//       prefix
-//     }
-//     number
-//   }
-// }
-// `;
+export const GET_ALL_QUEUES_DEPARTMENT = gql`
+  query GetAllQueuesDepartment {
+    Queue {
+      queueId
+      createdAt
+    }
+  }
+`;
+
 
 export const GET_ROLES = gql`
   query GetAllRoles {
