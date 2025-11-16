@@ -3,7 +3,7 @@ import { setContext } from "@apollo/client/link/context";
 
 // Use environment variable for the backend URL
 // Make sure to create a .env file with: VITE_GRAPHQL_URI=https://queuecalape.onrender.com/graphql
-const GRAPHQL_URI = import.meta.env.VITE_GRAPHQL_URI || "http://localhost:3000/graphql";
+const GRAPHQL_URI = import.meta.env.VITE_GRAPHQL_URI || "https://queuecalape.onrender.com/graphql";
 
 // Create HTTP link
 const httpLink = createHttpLink({

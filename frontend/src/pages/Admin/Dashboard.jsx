@@ -75,11 +75,12 @@ const AdminDashboard = () => {
     }
   }, [servData]);
 
-  useEffect(() => {
-    if (staffData && staffData.findAll) {
-      setStaffList(staffData.findAll);
-    }
-  }, [staffData]);
+ useEffect(() => {
+  if (staffData && staffData.staffs) {
+    setStaffList(staffData.staffs);
+  }
+}, [staffData]);
+
 
   const handleLogout = () => {
     sessionStorage.clear();

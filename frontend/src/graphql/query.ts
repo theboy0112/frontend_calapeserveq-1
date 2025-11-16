@@ -22,19 +22,17 @@ export const GET_DEPARTMENTS = gql`
 `;
 export const GET_ALL_STAFF = gql`
   query Query {
-    findAll {
-      staffId
-      staffFirstname
-      staffLastname
-      department {
-        departmentName
-        prefix
-      }
-      role {
+  staffs {
+    department {
+      departmentName
+    }
+    staffFirstname
+    staffLastname
+    role {
       roleName
     }
-    }
   }
+}
 `;
 export const GET_STAFF = gql`
   query Staff($staffId: Int!) {
@@ -54,7 +52,7 @@ export const GET_ADMIN_PROFILE = gql`
       staffFirstname
       staffLastname
       staffUsername
-      staffPassword
+      
       }
     }
 `;

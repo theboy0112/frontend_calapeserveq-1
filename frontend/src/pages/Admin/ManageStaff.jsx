@@ -22,6 +22,7 @@ const ManageStaff = () => {
   const [staff, setStaff] = useState([]);
   const [showStaffForm, setShowStaffForm] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
+  const [selectedRole, setSelectedRole] = useState("");
   const [newStaff, setNewStaff] = useState({
     firstName: "",
     lastName: "",
@@ -62,18 +63,17 @@ const ManageStaff = () => {
     },
   });
 
-  useEffect(() => {
-    console.log("Staff data from query:", staffData);
-    if (staffData && staffData.findAll) {
-      console.log("Setting staff:", staffData.findAll);
-      setStaff(staffData.findAll);
-    }
-  }, [staffData]);
+ useEffect(() => {
+  if (staffData && staffData.staffs) {
+    setStaff(staffData.staffs);
+  }
+}, [staffData]);;
 
-  // Filter roles to exclude Admin role (assuming Admin has roleId of 1)
-  const filteredRoles = rolesData?.roles?.filter(
-    (role) => role.roleName.toLowerCase() !== "admin"
-  ) || [];
+  
+  const filteredRoles =
+    rolesData?.roles?.filter(
+      (role) => role.roleName.toLowerCase() !== "admin"
+    ) || [];
 
   const handleAddStaff = async (e) => {
     e.preventDefault();
@@ -265,13 +265,20 @@ const ManageStaff = () => {
                     <select
                       value={newStaff.departmentId}
                       onChange={(e) =>
-                        setNewStaff({ ...newStaff, departmentId: e.target.value })
+                        setNewStaff({
+                          ...newStaff,
+                          departmentId: e.target.value,
+                        })
                       }
                       required
                     >
-                      <option value="">Select Department</option>
+                      <option value=""disabled>Select Department </option>
+                      
                       {departmentsData?.departments?.map((dept) => (
-                        <option key={dept.departmentId} value={dept.departmentId}>
+                        <option
+                          key={dept.departmentId}
+                          value={dept.departmentId}
+                        >
                           {dept.departmentName}
                         </option>
                       ))}
@@ -287,7 +294,9 @@ const ManageStaff = () => {
                       }
                       required
                     >
-                      <option value="">Select Role</option>
+                      <option value="" disabled>
+                        Select Role
+                      </option>
                       {filteredRoles.map((role) => (
                         <option key={role.roleId} value={role.roleId}>
                           {role.roleName}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./styles/ManageProfile.css";
 import { useMutation, useQuery } from "@apollo/client";
-import { UPDATE_ADMIN_PROFILE } from "../../graphql/mutation";
+import { UPDATE_ADMIN_PROFILE, UPDATE_PASSWORD } from "../../graphql/mutation";
 import { GET_ADMIN_PROFILE } from "../../graphql/query";
 import {
   FaUser,
@@ -35,6 +35,16 @@ const ManageProfile = () => {
   });
 
   console.log("Admin Data:", adminData);
+  const [updatePassword] = useMutation(UPDATE_PASSWORD, {
+  onCompleted: () => {
+    refetch();
+    setSuccessMessage("Password changed successfully!");
+    setTimeout(() => setSuccessMessage(""), 3000);
+  },
+  onError: (error) => {
+    console.error("Change Password error:", error);
+  },
+});
 
   const [updateProfile] = useMutation(UPDATE_ADMIN_PROFILE, {
     onCompleted: () => {
@@ -67,7 +77,34 @@ const ManageProfile = () => {
       });
       return;
     }
+    const handleUpdatePassword = async (e) => {
+  e.preventDefault();
+  
+  if (!profileData.newPassword || !profileData.confirmPassword) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Please fill out all password fields!",
+    });
+    return;
+  }
 
+  if (profileData.newPassword !== profileData.confirmPassword) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Passwords do not match!",
+    });
+    return;
+  }
+
+  await updatePassword({
+    variables: {
+      staffId: staffId, 
+      newPassword: profileData.newPassword,
+    },
+  });
+};
     try {
       await updateProfile({
         variables: {
@@ -226,14 +263,7 @@ const ManageProfile = () => {
               <FaUser className="section-icon" />
               <h3>Username</h3>
             </div>
-            {!editingUsername && (
-              <button
-                onClick={() => setEditingUsername(true)}
-                className="edit-section-btn"
-              >
-                Edit
-              </button>
-            )}
+            
           </div>
 
           {editingUsername ? (
@@ -267,7 +297,7 @@ const ManageProfile = () => {
           ) : (
             <div className="profile-info-display">
               <div className="info-item">
-                <span className="info-label">Current Username:</span>
+                <span className="info-label">Username:</span>
                 <span className="info-value">
                   {adminData?.staff?.staffUsername || "Not set"}
                 </span>
@@ -315,7 +345,7 @@ const ManageProfile = () => {
                     className="password-toggle-btn"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   >
-                    {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                    
                   </button>
                 </div>
               </div>

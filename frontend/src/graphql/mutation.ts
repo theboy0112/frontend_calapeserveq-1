@@ -2,7 +2,7 @@ import { gql } from "@apollo/client";
 
 export const LOGIN = gql`
   mutation Login($staffUsername: String!, $staffPassword: String!) {
-    login(staffUsername: $staffUsername, staffPassword: $staffPassword) {
+    login(staffUsername: $staffUsername, staffPass: $staffPassword) {
       success
       access_token
       role
@@ -117,6 +117,13 @@ export const UPDATE_SERVICE = gql`
       }
     }
   }
+`;
+export const UPDATE_PASSWORD = gql`
+ mutation UpdatePassword($newPassword: String!, $staffId: Float!) {
+  updatePassword(newPassword: $newPassword, staffId: $staffId) {
+    staffUsername
+  }
+}
 `;
 
 export const DELETE_SERVICE = gql`
