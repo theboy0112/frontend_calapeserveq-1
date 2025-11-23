@@ -49,15 +49,48 @@ const Login = () => {
 
       if (role.includes("queue") && role.includes("staff")) role = "queuestaff";
 
-      // CLEAR ALL STORAGE FIRST
-      sessionStorage.clear();
-      localStorage.clear();
+      // Store role-specific data BEFORE clearing, so we can preserve data for other roles
+      // This allows multiple users to be "logged in" in different tabs/windows
+      const existingAdminData = role !== "admin" ? {
+        adminStaffId: localStorage.getItem("adminStaffId"),
+        adminStaffUsername: localStorage.getItem("adminStaffUsername"),
+        adminStaffInfo: localStorage.getItem("adminStaffInfo")
+      } : null;
+      
+      const existingQueueStaffData = role !== "queuestaff" ? {
+        queueStaffId: localStorage.getItem("queueStaffId"),
+        queueStaffUsername: localStorage.getItem("queueStaffUsername"),
+        queueStaffInfo: localStorage.getItem("queueStaffInfo")
+      } : null;
+      
+      const existingStaffData = role !== "staff" ? {
+        staffId: localStorage.getItem("staffId"),
+        staffUsername: localStorage.getItem("staffUsername"),
+        staffInfo: localStorage.getItem("staffInfo")
+      } : null;
 
-      // STORE CONSISTENT DATA IN BOTH LOCALSTORAGE AND SESSIONSTORAGE
+      // Clear session storage (session-specific)
+      sessionStorage.clear();
+      
+      // Clear only non-role-specific localStorage items
+      // Keep role-specific keys so other dashboards can still access their data
+      const roleSpecificKeys = [
+        "adminStaffId", "adminStaffUsername", "adminStaffInfo",
+        "queueStaffId", "queueStaffUsername", "queueStaffInfo",
+        "staffId", "staffUsername", "staffInfo"
+      ];
+      
+      // Get all localStorage keys and remove only non-role-specific ones
+      const allKeys = Object.keys(localStorage);
+      allKeys.forEach(key => {
+        if (!roleSpecificKeys.includes(key)) {
+          localStorage.removeItem(key);
+        }
+      });
+
       const staff = loginData.staff || {};
       const department = staff.department || {};
       
-      // Create consistent staff info object
       const staffInfo = {
         id: staff.staffId || Date.now(),
         username: staff.staffUsername || username,
@@ -75,34 +108,70 @@ const Login = () => {
 
       console.log("Storing staff info:", staffInfo);
 
-      // STORE IN LOCALSTORAGE (PERSISTENT)
+      // Store current session data
       localStorage.setItem("token", access_token);
       localStorage.setItem("role", role);
-      localStorage.setItem("staffId", staff.staffId || staffInfo.id);
-      localStorage.setItem("staffUsername", staffInfo.username);
-      localStorage.setItem("staffRole", role);
-      localStorage.setItem("staffDepartment", staffInfo.department.name);
-      localStorage.setItem("staffDepartmentId", staffInfo.department.id.toString());
-      localStorage.setItem("staffDepartmentPrefix", staffInfo.department.prefix);
       localStorage.setItem("staffInfo", JSON.stringify(staffInfo));
 
-      // STORE IN SESSIONSTORAGE (SESSION ONLY)
       sessionStorage.setItem("userRole", role);
       sessionStorage.setItem("staffInfo", JSON.stringify(staffInfo));
       sessionStorage.setItem("isLoggedIn", "true");
 
-      // Role-specific storage
+      // Store role-specific data
       if (role === "admin") {
         sessionStorage.setItem("isAdminLoggedIn", "true");
         localStorage.setItem("isAdminLoggedIn", "true");
+        localStorage.setItem("adminStaffId", staff.staffId || staffInfo.id);
+        localStorage.setItem("adminStaffUsername", staffInfo.username);
+        localStorage.setItem("adminStaffInfo", JSON.stringify(staffInfo));
+        sessionStorage.setItem("staffId", staff.staffId || staffInfo.id);
+        // Also store in generic keys for backward compatibility
+        localStorage.setItem("staffId", staff.staffId || staffInfo.id);
+        localStorage.setItem("staffUsername", staffInfo.username);
       } else if (role === "queuestaff") {
         sessionStorage.setItem("isQueueStaffLoggedIn", "true");
         localStorage.setItem("isQueueStaffLoggedIn", "true");
         localStorage.setItem("queueStaffId", staff.staffId || staffInfo.id);
         localStorage.setItem("queueStaffUsername", staffInfo.username);
+        localStorage.setItem("queueStaffInfo", JSON.stringify(staffInfo));
       } else {
+        // Regular staff
         sessionStorage.setItem("isStaffLoggedIn", "true");
         localStorage.setItem("isStaffLoggedIn", "true");
+        localStorage.setItem("staffId", staff.staffId || staffInfo.id);
+        localStorage.setItem("staffUsername", staffInfo.username);
+        localStorage.setItem("staffInfo", JSON.stringify(staffInfo));
+      }
+
+      // Restore other roles' data so their dashboards still work
+      if (existingAdminData?.adminStaffId) {
+        localStorage.setItem("adminStaffId", existingAdminData.adminStaffId);
+        if (existingAdminData.adminStaffUsername) {
+          localStorage.setItem("adminStaffUsername", existingAdminData.adminStaffUsername);
+        }
+        if (existingAdminData.adminStaffInfo) {
+          localStorage.setItem("adminStaffInfo", existingAdminData.adminStaffInfo);
+        }
+      }
+      
+      if (existingQueueStaffData?.queueStaffId) {
+        localStorage.setItem("queueStaffId", existingQueueStaffData.queueStaffId);
+        if (existingQueueStaffData.queueStaffUsername) {
+          localStorage.setItem("queueStaffUsername", existingQueueStaffData.queueStaffUsername);
+        }
+        if (existingQueueStaffData.queueStaffInfo) {
+          localStorage.setItem("queueStaffInfo", existingQueueStaffData.queueStaffInfo);
+        }
+      }
+      
+      if (existingStaffData?.staffId && role !== "staff") {
+        localStorage.setItem("staffId", existingStaffData.staffId);
+        if (existingStaffData.staffUsername) {
+          localStorage.setItem("staffUsername", existingStaffData.staffUsername);
+        }
+        if (existingStaffData.staffInfo) {
+          localStorage.setItem("staffInfo", existingStaffData.staffInfo);
+        }
       }
 
       Swal.fire({

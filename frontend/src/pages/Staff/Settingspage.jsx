@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   User,
@@ -16,6 +17,7 @@ import { GET_STAFF_PROFILE } from "../../graphql/query";
 import { UPDATE_STAFF } from "../../graphql/mutation";
 
 const SettingsPage = ({ onClose }) => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("account");
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -23,9 +25,48 @@ const SettingsPage = ({ onClose }) => {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Regular Staff specific credentials
-  const staffId = localStorage.getItem("staffId");
-  const staffUsername = localStorage.getItem("staffUsername");
+  // Determine staff credentials based on current route ONLY
+  // This Settings page is for regular staff, so it should only be accessed from /staff/dashboard
+  // We check the route, not the session role, to ensure we show the correct data for this dashboard
+  const getStaffCredentials = () => {
+    // Check if we're on staff dashboard route
+    if (location.pathname.includes("/staff/dashboard")) {
+      // Try role-specific storage first (preserved across logins)
+      const staffInfoStr = localStorage.getItem("staffInfo");
+      if (staffInfoStr) {
+        try {
+          const parsed = JSON.parse(staffInfoStr);
+          const parsedRole = parsed.role?.toLowerCase().replace(/\s+/g, '');
+          // Only use if it's staff data (not queuestaff or admin)
+          if (parsedRole === "staff" && parsed.id) {
+            return {
+              staffId: parsed.id.toString(),
+              staffUsername: parsed.username || localStorage.getItem("staffUsername")
+            };
+          }
+        } catch (e) {
+          console.error("Error parsing staffInfo:", e);
+        }
+      }
+      
+      // Fallback to role-specific keys (these persist across logins)
+      const id = localStorage.getItem("staffId");
+      const username = localStorage.getItem("staffUsername");
+      if (id) {
+        return { 
+          staffId: id, 
+          staffUsername: username || "Staff User" 
+        };
+      }
+    }
+    // Default fallback
+    return {
+      staffId: localStorage.getItem("staffId"),
+      staffUsername: localStorage.getItem("staffUsername")
+    };
+  };
+
+  const { staffId, staffUsername } = getStaffCredentials();
 
   // Monitor online/offline status
   useEffect(() => {

@@ -33,8 +33,6 @@ const QueueForm = ({ onSuccess }) => {
   
   const [queueStaffMenuOpen, setQueueStaffMenuOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-
-  // Get staff info from storage - UPDATED VERSION
   const staffUsername = localStorage.getItem("queueStaffUsername") || 
                        localStorage.getItem("staffUsername") || 
                        "Queue Staff";
@@ -128,10 +126,8 @@ const QueueForm = ({ onSuccess }) => {
     }
   });
 
-  // Fixed: Properly extract staff info with fallbacks
   const staffInfo = staffData?.queueStaff || staffData?.staff || staffData?.getQueueStaffProfile || null;
 
-  // Fetch departments with better error handling
   const {
     data: departmentsData,
     loading: departmentsLoading,
@@ -144,7 +140,6 @@ const QueueForm = ({ onSuccess }) => {
     }
   });
 
-  // Fetch services with better error handling
   const {
     data: servicesData,
     loading: servicesLoading,

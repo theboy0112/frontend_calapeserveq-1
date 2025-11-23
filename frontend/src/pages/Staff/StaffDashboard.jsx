@@ -71,7 +71,6 @@ const StaffDashboard = () => {
       };
     }, []);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -83,7 +82,6 @@ const StaffDashboard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Audio setup
   useEffect(() => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   User,
@@ -16,6 +17,7 @@ import { GET_QUEUESTAFF_PROFILE } from "../../graphql/query";
 import { UPDATE_QUEUESTAFF_PROFILE } from "../../graphql/mutation";
 
 const SettingsPage = ({ onClose }) => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("account");
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -23,9 +25,65 @@ const SettingsPage = ({ onClose }) => {
   const [message, setMessage] = useState({ type: "", text: "" });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // Queue Staff specific credentials
-  const staffId = localStorage.getItem("queueStaffId");
-  const staffUsername = localStorage.getItem("queueStaffUsername");
+  // Determine queue staff credentials based on current route ONLY
+  // This Settings page is for queue staff, so it should only be accessed from /queuestaff/dashboard
+  // We check the route, not the session role, to ensure we show the correct data for this dashboard
+  const getQueueStaffCredentials = () => {
+    // Check if we're on queuestaff dashboard route
+    if (location.pathname.includes("/queuestaff/dashboard")) {
+      // Try role-specific storage first (preserved across logins)
+      const queueStaffInfoStr = localStorage.getItem("queueStaffInfo");
+      if (queueStaffInfoStr) {
+        try {
+          const parsed = JSON.parse(queueStaffInfoStr);
+          const parsedRole = parsed.role?.toLowerCase().replace(/\s+/g, '');
+          // Only use if it's queuestaff data
+          if (parsedRole === "queuestaff" && parsed.id) {
+            return {
+              staffId: parsed.id.toString(),
+              staffUsername: parsed.username || localStorage.getItem("queueStaffUsername")
+            };
+          }
+        } catch (e) {
+          console.error("Error parsing queueStaffInfo:", e);
+        }
+      }
+      
+      // Also try generic staffInfo (might be queuestaff)
+      const staffInfoStr = localStorage.getItem("staffInfo");
+      if (staffInfoStr) {
+        try {
+          const parsed = JSON.parse(staffInfoStr);
+          const parsedRole = parsed.role?.toLowerCase().replace(/\s+/g, '');
+          if (parsedRole === "queuestaff" && parsed.id) {
+            return {
+              staffId: parsed.id.toString(),
+              staffUsername: parsed.username || localStorage.getItem("queueStaffUsername")
+            };
+          }
+        } catch (e) {
+          console.error("Error parsing staffInfo:", e);
+        }
+      }
+      
+      // Fallback to queuestaff-specific keys (these persist across logins)
+      const id = localStorage.getItem("queueStaffId");
+      const username = localStorage.getItem("queueStaffUsername");
+      if (id) {
+        return { 
+          staffId: id, 
+          staffUsername: username || "Queue Staff User" 
+        };
+      }
+    }
+    // Default fallback to queuestaff-specific keys
+    return {
+      staffId: localStorage.getItem("queueStaffId"),
+      staffUsername: localStorage.getItem("queueStaffUsername")
+    };
+  };
+
+  const { staffId, staffUsername } = getQueueStaffCredentials();
 
   // Monitor online/offline status
   useEffect(() => {

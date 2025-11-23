@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import "./styles/ManageProfile.css";
 import { useMutation, useQuery } from "@apollo/client";
 import { UPDATE_ADMIN_PROFILE, UPDATE_PASSWORD } from "../../graphql/mutation";
@@ -15,6 +16,7 @@ import Swal from "sweetalert2";
 import logo from "/calapelogo.png";
 
 const ManageProfile = () => {
+  const location = useLocation();
   const [profileData, setProfileData] = useState({
     username: "",
     currentPassword: "",
@@ -27,7 +29,42 @@ const ManageProfile = () => {
   const [editingPassword, setEditingPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const staffId = parseInt(sessionStorage.getItem("staffId")) || 1;
+  // Determine staffId based on current route
+  // Since this is the Admin Settings page, it should only be accessed from /admin/dashboard
+  // Use admin-specific storage or fallback to sessionStorage
+  const getAdminStaffId = () => {
+    // Check if we're on admin dashboard route
+    if (location.pathname.includes("/admin/dashboard")) {
+      // Check if current session role is admin
+      const role = sessionStorage.getItem("userRole") || localStorage.getItem("role");
+      if (role === "admin") {
+        // Try admin-specific storage first
+        const adminId = localStorage.getItem("adminStaffId") || sessionStorage.getItem("staffId");
+        if (adminId) return parseInt(adminId, 10);
+        
+        // Try to get from staffInfo
+        const adminStaffInfo = sessionStorage.getItem("staffInfo") || localStorage.getItem("staffInfo");
+        if (adminStaffInfo) {
+          try {
+            const parsed = JSON.parse(adminStaffInfo);
+            if (parsed.role === "admin" && parsed.id) {
+              return parseInt(parsed.id, 10);
+            }
+          } catch (e) {
+            console.error("Error parsing admin staffInfo:", e);
+          }
+        }
+        
+        // Fallback to generic staffId
+        const id = sessionStorage.getItem("staffId") || localStorage.getItem("staffId");
+        if (id) return parseInt(id, 10);
+      }
+    }
+    // Default fallback
+    return 1;
+  };
+
+  const staffId = getAdminStaffId();
 
   const { data: adminData, loading, error, refetch } = useQuery(GET_ADMIN_PROFILE, {
     variables: { staffId },
