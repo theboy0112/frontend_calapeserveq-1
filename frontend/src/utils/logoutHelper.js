@@ -1,9 +1,5 @@
-/**
- * Helper function to logout while preserving role-specific data
- * This allows users to switch between dashboards even after logging out and back in
- */
+
 export const logoutPreservingRoleData = () => {
-  // Preserve role-specific keys before clearing
   const roleSpecificData = {
     adminStaffId: localStorage.getItem("adminStaffId"),
     adminStaffUsername: localStorage.getItem("adminStaffUsername"),
@@ -16,13 +12,10 @@ export const logoutPreservingRoleData = () => {
     staffInfo: localStorage.getItem("staffInfo")
   };
 
-  // Clear session storage (session-specific)
   sessionStorage.clear();
   
-  // Clear all localStorage
   localStorage.clear();
   
-  // Restore role-specific data
   if (roleSpecificData.adminStaffId) {
     localStorage.setItem("adminStaffId", roleSpecificData.adminStaffId);
     if (roleSpecificData.adminStaffUsername) {
