@@ -69,69 +69,45 @@ const ManageAds = () => {
 
     setIsUploading(true);
     try {
-      // Create FormData according to GraphQL multipart request spec
-      // This format is required by graphql-upload-ts
       const formData = new FormData();
-
-      // The operations field contains the GraphQL query/mutation
-      // Must match the exact mutation signature
       const operations = {
         query: `mutation UploadAd($file: Upload!) { uploadAd(file: $file) }`,
         variables: {
-          file: null, // Will be replaced by the map
+          file: null,
         },
       };
 
-      // The map field tells the server which file corresponds to which variable
       const map = {
         '0': ['variables.file'],
       };
 
-      // Append all parts in the correct order - use JSON.stringify for operations and map
       formData.append('operations', JSON.stringify(operations));
       formData.append('map', JSON.stringify(map));
-      formData.append('0', selectedFile, selectedFile.name); // The actual file with name
-
-      // Debug: Log what we're sending
-      console.log("FormData contents:", {
-        operations: JSON.stringify(operations),
-        map: JSON.stringify(map),
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
-        fileType: selectedFile.type,
-      });
+      formData.append('0', selectedFile, selectedFile.name);
 
       const token = localStorage.getItem("token");
-      
       const graphqlUri = import.meta.env.VITE_GRAPHQL_URI || "http://localhost:3000/graphql";
-      console.log("Sending request to:", graphqlUri);
-
       
       const headers = {};
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      
+
       const response = await fetch(graphqlUri, {
         method: "POST",
         body: formData,
-        headers: headers, // No Content-Type - browser sets it automatically
+        headers: headers,
         credentials: "include",
       });
 
-      console.log("Response status:", response.status, response.statusText);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Response error text:", errorText);
         throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.json();
-      console.log("Response result:", result);
 
       if (result.errors) {
-        console.error("GraphQL errors:", result.errors);
         throw new Error(result.errors[0]?.message || "Upload failed");
       }
 
@@ -266,6 +242,18 @@ const ManageAds = () => {
     if (fileInput) fileInput.value = "";
   };
 
+  // Function to get the full image URL
+  const getImageUrl = (filepath) => {
+    if (!filepath) return '';
+    // If it's already a full URL, return as is
+    if (filepath.startsWith('http')) return filepath;
+    // Otherwise, construct the URL relative to your server
+    const baseUrl = import.meta.env.VITE_GRAPHQL_URI ? 
+      import.meta.env.VITE_GRAPHQL_URI.replace('/graphql', '') : 
+      'http://localhost:3000';
+    return `${baseUrl}${filepath}`;
+  };
+
   return (
     <div className="upload-container">
       <div className="upload-section">
@@ -314,9 +302,32 @@ const ManageAds = () => {
         ) : data?.ads?.length === 0 ? (
           <p className="no-ads">No advertisements uploaded yet.</p>
         ) : (
-          <div className="ads-list">
+          <div className="ads-grid">
             {data?.ads?.map((ad) => (
-              <div key={ad.id} className="ad-item">
+              <div key={ad.id} className="ad-card">
+                <div className="ad-preview">
+                  {ad.mimetype?.startsWith('image/') ? (
+                    <img 
+                      src={getImageUrl(ad.filepath)} 
+                      alt={ad.filename}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : (
+                    <div className="file-placeholder">
+                      <span>{ad.mimetype?.includes('video') ? '🎥' : '📄'}</span>
+                      <span>Preview not available</span>
+                    </div>
+                  )}
+                  {ad.mimetype?.startsWith('image/') && (
+                    <div className="file-placeholder" style={{display: 'none'}}>
+                      <span>🖼️</span>
+                      <span>Image failed to load</span>
+                    </div>
+                  )}
+                </div>
                 <div className="ad-info">
                   <p className="ad-filename">{ad.filename}</p>
                   <p className="ad-meta">
