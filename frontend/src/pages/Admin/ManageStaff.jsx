@@ -140,9 +140,9 @@ const ManageStaff = () => {
   // Filter counters based on selected department
   const filteredCounters = newStaff.departmentId
     ? countersData?.counters?.filter(
-        (counter) =>
-          counter.department?.departmentId === parseInt(newStaff.departmentId),
-      ) || []
+      (counter) =>
+        counter.department?.departmentId === parseInt(newStaff.departmentId),
+    ) || []
     : [];
 
   const handleAddStaff = async (e) => {
@@ -184,8 +184,7 @@ const ManageStaff = () => {
               departmentId: parseInt(newStaff.departmentId),
               counterId: newStaff.counterId
                 ? parseInt(newStaff.counterId)
-                : null,
-              counterName: selectedCounter ? selectedCounter.counterName : "",
+                : 0,
             },
           },
         });

@@ -13,9 +13,10 @@ export const logoutPreservingRoleData = () => {
   };
 
   sessionStorage.clear();
-  
   localStorage.clear();
-  
+
+  // Restore legacy localStorage for cross-tab persistence if desired, 
+  // but Login/Dashboard now prioritize sessionStorage for the active session.
   if (roleSpecificData.adminStaffId) {
     localStorage.setItem("adminStaffId", roleSpecificData.adminStaffId);
     if (roleSpecificData.adminStaffUsername) {
@@ -25,7 +26,7 @@ export const logoutPreservingRoleData = () => {
       localStorage.setItem("adminStaffInfo", roleSpecificData.adminStaffInfo);
     }
   }
-  
+
   if (roleSpecificData.queueStaffId) {
     localStorage.setItem("queueStaffId", roleSpecificData.queueStaffId);
     if (roleSpecificData.queueStaffUsername) {
@@ -35,7 +36,7 @@ export const logoutPreservingRoleData = () => {
       localStorage.setItem("queueStaffInfo", roleSpecificData.queueStaffInfo);
     }
   }
-  
+
   if (roleSpecificData.staffId) {
     localStorage.setItem("staffId", roleSpecificData.staffId);
     if (roleSpecificData.staffUsername) {
@@ -45,11 +46,7 @@ export const logoutPreservingRoleData = () => {
       localStorage.setItem("staffInfo", roleSpecificData.staffInfo);
     }
   }
-  
-  console.log("Logout completed - role-specific data preserved:", {
-    hasAdmin: !!roleSpecificData.adminStaffId,
-    hasQueueStaff: !!roleSpecificData.queueStaffId,
-    hasStaff: !!roleSpecificData.staffId
-  });
+
+  console.log("Logout completed - session cleared, role-specific persistence maintained.");
 };
 

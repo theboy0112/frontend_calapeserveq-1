@@ -27,15 +27,16 @@ const SettingsPage = ({ onClose }) => {
 
   // Get staff credentials from localStorage
   const getStaffCredentials = () => {
-    const id = localStorage.getItem("staffId");
+    // Prioritize sessionStorage for tab-level isolation
+    const id = sessionStorage.getItem("staffId") || localStorage.getItem("staffId");
     const username = localStorage.getItem("staffUsername");
-    const staffInfoStr = localStorage.getItem("staffInfo");
+    const staffInfoStr = sessionStorage.getItem("staffInfo") || localStorage.getItem("staffInfo");
 
     if (staffInfoStr) {
       try {
         const parsed = JSON.parse(staffInfoStr);
         if (
-          parsed.role?.toLowerCase() === "staff" &&
+          (parsed.role?.toLowerCase() === "staff" || parsed.role?.toLowerCase() === "queuestaff") &&
           String(parsed.id) === String(id)
         ) {
           return { staffId: id, staffUsername: parsed.username || username };
@@ -253,18 +254,16 @@ const SettingsPage = ({ onClose }) => {
 
         <div className="settings-tabs">
           <button
-            className={`settings-tab ${
-              activeTab === "account" ? "settings-tab-active" : ""
-            }`}
+            className={`settings-tab ${activeTab === "account" ? "settings-tab-active" : ""
+              }`}
             onClick={() => setActiveTab("account")}
           >
             <User size={16} />
             <span>Account</span>
           </button>
           <button
-            className={`settings-tab ${
-              activeTab === "theme" ? "settings-tab-active" : ""
-            }`}
+            className={`settings-tab ${activeTab === "theme" ? "settings-tab-active" : ""
+              }`}
             onClick={() => setActiveTab("theme")}
           >
             <Palette size={16} />
@@ -434,9 +433,8 @@ const SettingsPage = ({ onClose }) => {
 
               <div className="theme-options">
                 <div
-                  className={`theme-option ${
-                    themeSettings.theme === "light" ? "theme-option-active" : ""
-                  }`}
+                  className={`theme-option ${themeSettings.theme === "light" ? "theme-option-active" : ""
+                    }`}
                   onClick={() => handleThemeChange("light")}
                 >
                   <div className="theme-preview theme-preview-light">
@@ -453,9 +451,8 @@ const SettingsPage = ({ onClose }) => {
                 </div>
 
                 <div
-                  className={`theme-option ${
-                    themeSettings.theme === "dark" ? "theme-option-active" : ""
-                  }`}
+                  className={`theme-option ${themeSettings.theme === "dark" ? "theme-option-active" : ""
+                    }`}
                   onClick={() => handleThemeChange("dark")}
                 >
                   <div className="theme-preview theme-preview-dark">
@@ -472,9 +469,8 @@ const SettingsPage = ({ onClose }) => {
                 </div>
 
                 <div
-                  className={`theme-option ${
-                    themeSettings.theme === "dim" ? "theme-option-active" : ""
-                  }`}
+                  className={`theme-option ${themeSettings.theme === "dim" ? "theme-option-active" : ""
+                    }`}
                   onClick={() => handleThemeChange("dim")}
                 >
                   <div className="theme-preview theme-preview-dim">

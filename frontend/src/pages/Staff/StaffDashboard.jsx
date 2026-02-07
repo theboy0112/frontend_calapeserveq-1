@@ -213,11 +213,13 @@ const StaffDashboard = () => {
     {
       variables: {
         staffId: parseInt(
+          sessionStorage.getItem("staffId") ||
           localStorage.getItem("staffId") ||
-            localStorage.getItem("queueStaffId"),
+          localStorage.getItem("queueStaffId"),
         ),
       },
       skip:
+        !sessionStorage.getItem("staffId") &&
         !localStorage.getItem("staffId") &&
         !localStorage.getItem("queueStaffId"),
       fetchPolicy: "network-only",
@@ -340,22 +342,29 @@ const StaffDashboard = () => {
 
   useEffect(() => {
     if (Array.isArray(queuesByDepartment) && queuesByDepartment.length > 0) {
+      const currentCounterId = staffInfo?.counter?.counterId;
+
       const waitingCount = queuesByDepartment.filter(
         (queue) => queue.status?.toLowerCase() === "waiting",
       ).length;
 
       const servingCount = queuesByDepartment.filter(
-        (queue) => queue.status?.toLowerCase() === "serving",
+        (queue) =>
+          queue.status?.toLowerCase() === "serving" &&
+          queue.counter?.counterId === currentCounterId,
       ).length;
 
       const servedCount = queuesByDepartment.filter(
         (queue) =>
-          queue.status?.toLowerCase() === "complete" ||
-          queue.status?.toLowerCase() === "completed",
+          (queue.status?.toLowerCase() === "complete" ||
+            queue.status?.toLowerCase() === "completed") &&
+          queue.counter?.counterId === currentCounterId,
       ).length;
 
       const voidCount = queuesByDepartment.filter(
-        (queue) => queue.status?.toLowerCase() === "void",
+        (queue) =>
+          queue.status?.toLowerCase() === "void" &&
+          queue.counter?.counterId === currentCounterId,
       ).length;
 
       setStatistics({
@@ -372,32 +381,34 @@ const StaffDashboard = () => {
         void: 0,
       });
     }
-  }, [queuesByDepartment]);
+  }, [queuesByDepartment, staffInfo?.counter?.counterId]);
 
   useEffect(() => {
     const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
+      sessionStorage.getItem("token") || localStorage.getItem("token");
     const role =
-      localStorage.getItem("role") || sessionStorage.getItem("userRole");
+      sessionStorage.getItem("userRole") || localStorage.getItem("role");
 
     let staffData = null;
 
-    const localStaffInfo = localStorage.getItem("staffInfo");
-    if (localStaffInfo) {
+    const sessionStaffInfo = sessionStorage.getItem("staffInfo");
+    if (sessionStaffInfo) {
       try {
-        staffData = JSON.parse(localStaffInfo);
+        staffData = JSON.parse(sessionStaffInfo);
+        console.log("Using staff data from sessionStorage:", staffData);
       } catch (e) {
-        console.error("Error parsing localStorage staffInfo:", e);
+        console.error("Error parsing sessionStorage staffInfo:", e);
       }
     }
 
     if (!staffData) {
-      const sessionStaffInfo = sessionStorage.getItem("staffInfo");
-      if (sessionStaffInfo) {
+      const localStaffInfo = localStorage.getItem("staffInfo");
+      if (localStaffInfo) {
         try {
-          staffData = JSON.parse(sessionStaffInfo);
+          staffData = JSON.parse(localStaffInfo);
+          console.log("Falling back to staff data from localStorage:", staffData);
         } catch (e) {
-          console.error("Error parsing sessionStorage staffInfo:", e);
+          console.error("Error parsing localStorage staffInfo:", e);
         }
       }
     }
@@ -422,9 +433,9 @@ const StaffDashboard = () => {
           },
           counter: localStorage.getItem("staffCounterId")
             ? {
-                counterId: parseInt(localStorage.getItem("staffCounterId")),
-                counterName: localStorage.getItem("staffCounterName") || "",
-              }
+              counterId: parseInt(localStorage.getItem("staffCounterId")),
+              counterName: localStorage.getItem("staffCounterName") || "",
+            }
             : null,
         };
       }
@@ -481,6 +492,8 @@ const StaffDashboard = () => {
   // Transform queue data
   useEffect(() => {
     if (queuesByDepartment?.length) {
+      const currentCounterId = staffInfo?.counter?.counterId;
+
       const transformed = queuesByDepartment.map((q) => ({
         id: q.queueId,
         queueId: q.queueId,
@@ -498,9 +511,9 @@ const StaffDashboard = () => {
 
       const activeQueues = transformed.filter(
         (q) =>
-          q.status?.toLowerCase() !== "complete" &&
-          q.status?.toLowerCase() !== "completed" &&
-          q.status?.toLowerCase() !== "void",
+          q.status?.toLowerCase() === "waiting" ||
+          (q.status?.toLowerCase() === "serving" &&
+            q.counter?.counterId === currentCounterId),
       );
 
       setQueueList(activeQueues);
@@ -508,7 +521,7 @@ const StaffDashboard = () => {
       const currentServingQueue = transformed.find(
         (q) =>
           q.status?.toLowerCase() === "serving" &&
-          q.counter?.counterId === staffInfo?.counter?.counterId,
+          q.counter?.counterId === currentCounterId,
       );
 
       if (currentServingQueue) {
@@ -520,7 +533,7 @@ const StaffDashboard = () => {
       setQueueList([]);
       setCurrentServing(null);
     }
-  }, [queuesByDepartment, departmentInfo.prefix]);
+  }, [queuesByDepartment, departmentInfo.prefix, staffInfo?.counter?.counterId]);
 
   useEffect(() => {
     if (queueError) {
@@ -601,10 +614,7 @@ const StaffDashboard = () => {
         staffId: parseInt(staffInfo.id),
         counterId: parseInt(staffInfo.counter.counterId),
         departmentId: parseInt(departmentInfo.id),
-        priority: priority,
       };
-
-      console.log("Calling Next with variables:", vars);
 
       await callNext({
         variables: vars,
@@ -715,7 +725,12 @@ const StaffDashboard = () => {
 
           <div className="header">
             <div className="header-left">
-              <h1 className="dashboard-title">{departmentInfo.name}</h1>
+              <h1 className="dashboard-title">
+                {departmentInfo.name}
+                {staffInfo?.counter?.counterName && (
+                  <span className="counter-name-inline"> | {staffInfo.counter.counterName}</span>
+                )}
+              </h1>
               <div className="current-time">
                 <Clock size={14} />
                 <span>{currentTime.toLocaleTimeString()}</span>
@@ -776,13 +791,13 @@ const StaffDashboard = () => {
                 <div className="current-number">
                   {currentServing
                     ? (() => {
-                        const servingCustomer = queuesByDepartment.find(
-                          (item) => item.queueId === currentServing,
-                        );
-                        return servingCustomer
-                          ? `${departmentInfo.prefix}-${servingCustomer.number}`
-                          : "None";
-                      })()
+                      const servingCustomer = queuesByDepartment.find(
+                        (item) => item.queueId === currentServing,
+                      );
+                      return servingCustomer
+                        ? `${departmentInfo.prefix}-${servingCustomer.number}`
+                        : "None";
+                    })()
                     : "None"}
                 </div>
                 <div className="serving-details">
@@ -954,11 +969,11 @@ const StaffDashboard = () => {
                       {queueList.filter(
                         (item) => item.priority?.toLowerCase() === "regular",
                       ).length === 0 && (
-                        <div className="empty-queue">
-                          <Users size={32} className="empty-icon" />
-                          <p>No regular queues</p>
-                        </div>
-                      )}
+                          <div className="empty-queue">
+                            <Users size={32} className="empty-icon" />
+                            <p>No regular queues</p>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -1067,14 +1082,14 @@ const StaffDashboard = () => {
                       {queueList.filter(
                         (item) => item.priority?.toLowerCase() !== "regular",
                       ).length === 0 && (
-                        <div className="empty-queue">
-                          <Star
-                            size={32}
-                            className="empty-icon priority-icon"
-                          />
-                          <p>No priority queues</p>
-                        </div>
-                      )}
+                          <div className="empty-queue">
+                            <Star
+                              size={32}
+                              className="empty-icon priority-icon"
+                            />
+                            <p>No priority queues</p>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>

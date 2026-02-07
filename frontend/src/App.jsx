@@ -15,8 +15,8 @@ import PrivateRoute from "./routes/PrivateRoute";
 import TVmonitor from "./pages/Monitor/TVmonitor";
 import QueueForm from "./pages/Citizens/QueueForm";
 import QueueStaffRoute from "./routes/QueueStaffRoute";
-import UtilsHome from "./Client/Home";
-import ClientQueue from "./Client/ClientQueue";
+import UtilsHome from "./pages/Client/Home";
+import ClientQueue from "./pages/Client/ClientQueue";
 function App() {
   return (
     <Router>

@@ -10,12 +10,13 @@ import {
   Check,
   ArrowLeft,
 } from "lucide-react";
-import "../pages/Citizens/styles/QueueForm.css";
-import QueueModal from "../pages/Citizens/QueueModal";
-import { GET_DEPARTMENTS, GET_SERVICES } from "../graphql/query";
-import { CREATE_QUEUE } from "../graphql/mutation";
-import Header from "../components/Header/Header";
-import Footer from "../components/Footer/Footer";
+import "../Citizens/styles/QueueForm.css";
+import QueueModal from "../Citizens/QueueModal";
+import { GET_DEPARTMENTS, GET_SERVICES } from "../../graphql/query";
+import { CREATE_QUEUE } from "../../graphql/mutation";
+import Header from "../../components/Header/Header";
+import Footer from "../../components/Footer/Footer";
+import { isOfficeHours, getOfficeHoursMessage } from "../../utils/officeHours";
 
 import { useNavigate } from "react-router-dom";
 
@@ -62,7 +63,7 @@ const ClientQueue = () => {
     };
 
     const channel = new BroadcastChannel('admin-updates');
-    
+
     channel.onmessage = (event) => {
       if (event.data.type === 'DATA_UPDATED') {
         refetchDepartments();
@@ -81,17 +82,17 @@ const ClientQueue = () => {
   // Fixed department options with better data extraction
   const departmentOptions = useMemo(() => {
     let departments = [];
-    
+
     if (departmentsData?.departments) {
-      departments = Array.isArray(departmentsData.departments) 
-        ? departmentsData.departments 
+      departments = Array.isArray(departmentsData.departments)
+        ? departmentsData.departments
         : [];
     }
-    
+
     if (departments.length === 0 && servicesData?.services) {
       const services = Array.isArray(servicesData.services) ? servicesData.services : [];
       const departmentMap = new Map();
-      
+
       services.forEach((service) => {
         if (service?.department) {
           const dept = service.department;
@@ -103,7 +104,7 @@ const ClientQueue = () => {
           }
         }
       });
-      
+
       departments = Array.from(departmentMap.values());
     }
 
@@ -140,7 +141,7 @@ const ClientQueue = () => {
     const { name, value } = e.target;
     const processedValue =
       name === "departmentId" || name === "serviceId"
-        ? value 
+        ? value
         : value;
 
     setFormData((prev) => ({
@@ -175,6 +176,11 @@ const ClientQueue = () => {
   };
 
   const handleSubmit = async () => {
+    if (!isOfficeHours()) {
+      setError(getOfficeHoursMessage());
+      return;
+    }
+
     setIsSubmitting(true);
     setError("");
 
@@ -315,7 +321,7 @@ const ClientQueue = () => {
 
   if (departmentsError || servicesError) {
     const errorMessage = departmentsError?.message || servicesError?.message;
-    
+
     return (
       <div className="queue-page-wrapper">
         <Header />
@@ -323,8 +329,8 @@ const ClientQueue = () => {
           <div className="queue-error-container">
             <div className="queue-error-message">
               <p>Error loading data: {errorMessage}</p>
-              <button 
-                className="queue-retry-btn" 
+              <button
+                className="queue-retry-btn"
                 onClick={() => window.location.reload()}
               >
                 Retry
@@ -341,18 +347,19 @@ const ClientQueue = () => {
     <div className="queue-page-wrapper">
       <Header />
       <div className="queue-home-container">
-        
-        <div className="queue-form-container">
-          <button 
-            className="queue-previous-btn" 
-            onClick={() => navigate("/home")}
-            style={{ width: 'fit-content', marginBottom: '1rem', border: 'none', background: 'transparent', padding: 0 }}
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Home</span>
-          </button>
+        <div className="queue-top-section">
+          <div className="queue-top-section-left">
+            <button
+              className="queue-previous-btn"
+              onClick={() => navigate("/home")}
+              style={{ width: 'fit-content', border: 'none', background: 'transparent', padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#475569', fontSize: '0.85rem', cursor: 'pointer' }}
+            >
+              <ArrowLeft size={18} />
+              <span>Back</span>
+            </button>
+          </div>
 
-          <div className="queue-form-header">
+          <div className="queue-top-section-center">
             <div className="queue-progress-container">
               <div className="queue-progress-steps">
                 {[1, 2, 3, 4].map((step) => (
@@ -374,7 +381,15 @@ const ClientQueue = () => {
                 ></div>
               </div>
             </div>
+          </div>
 
+          <div className="queue-top-section-right">
+            {/* Spacer for symmetry */}
+          </div>
+        </div>
+
+        <div className="queue-form-container">
+          <div className="queue-form-header">
             <div className="queue-form-title-section">
               <h2 className="queue-form-title">{getStepTitle()}</h2>
               <p className="queue-form-subtitle">{getStepSubtitle()}</p>
@@ -564,9 +579,9 @@ const ClientQueue = () => {
 
                 <div className="queue-actions-center">
                   {currentStep >= 2 && (
-                    <button 
-                      type="button" 
-                      className="queue-reset-btn" 
+                    <button
+                      type="button"
+                      className="queue-reset-btn"
                       onClick={resetForm}
                       disabled={isSubmitting}
                     >
@@ -578,9 +593,9 @@ const ClientQueue = () => {
 
                 <div className="queue-actions-right">
                   {currentStep < 4 ? (
-                    <button 
-                      type="button" 
-                      className="queue-next-btn" 
+                    <button
+                      type="button"
+                      className="queue-next-btn"
                       onClick={handleNext}
                       disabled={isSubmitting}
                     >
@@ -593,11 +608,6 @@ const ClientQueue = () => {
                       className={`queue-submit-btn ${isSubmitting ? "queue-submit-btn-loading" : ""}`}
                       disabled={isSubmitting}
                       onClick={handleSubmit}
-                      style={{ 
-                        background: 'transparent', 
-                        color: '#10b981', 
-                        border: '1px solid #10b981' 
-                      }}
                     >
                       {!isSubmitting ? (
                         <>

@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
-* {
+.login-page * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -80,6 +80,7 @@ body {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -226,9 +227,8 @@ body {
 }
 
 .password-toggle-btn:focus {
-  outline: 2px solid #4a90e2;
-  outline-offset: 2px;
-  background-color: rgba(74, 144, 226, 0.1);
+  outline: none;
+  background-color: transparent;
   color: #4a90e2;
 }
 
@@ -265,10 +265,7 @@ body {
 .eye-icon {
   width: 18px;
   height: 18px;
-  stroke-width: 2;
   transition: all 0.2s ease;
-  fill: none;
-  stroke: currentColor;
 }
 
 .password-toggle-btn:hover .eye-icon {
@@ -344,12 +341,14 @@ body {
 }
 
 @keyframes bounce {
+
   0%,
   80%,
   100% {
     transform: scale(0.8);
     opacity: 0.5;
   }
+
   40% {
     transform: scale(1);
     opacity: 1;
@@ -404,8 +403,7 @@ body {
 
 .form-input:focus-visible,
 .password-input:focus-visible,
-.login-button:focus-visible,
-.password-toggle-btn:focus-visible {
+.login-button:focus-visible {
   outline: 2px solid #4a90e2;
   outline-offset: 2px;
 }

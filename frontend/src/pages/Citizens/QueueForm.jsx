@@ -22,6 +22,7 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import SettingsPage from "./SettingsPage";
 import { logoutPreservingRoleData } from "../../utils/logoutHelper";
+import { isOfficeHours, getOfficeHoursMessage } from "../../utils/officeHours";
 
 const QueueForm = ({ onSuccess }) => {
   const navigate = useNavigate();
@@ -31,30 +32,30 @@ const QueueForm = ({ onSuccess }) => {
     serviceId: "",
     priority: "",
   });
-  
+
   const [queueStaffMenuOpen, setQueueStaffMenuOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const staffUsername = localStorage.getItem("queueStaffUsername") || 
-                       localStorage.getItem("staffUsername") || 
-                       "Queue Staff";
+  const staffUsername = localStorage.getItem("queueStaffUsername") ||
+    localStorage.getItem("staffUsername") ||
+    "Queue Staff";
 
-  const staffId = localStorage.getItem("queueStaffId") || 
-                  localStorage.getItem("staffId") || 
-                  localStorage.getItem("userId");
+  const staffId = localStorage.getItem("queueStaffId") ||
+    localStorage.getItem("staffId") ||
+    localStorage.getItem("userId");
 
   const token = localStorage.getItem("token");
 
   // Check authentication on component mount
   useEffect(() => {
     console.log("QueueForm auth check - Token:", token, "Staff ID:", staffId);
-    
+
     if (!token || !staffId) {
       console.error("No authentication token or staff ID found in localStorage");
       // Try to get from sessionStorage as fallback
       const sessionToken = sessionStorage.getItem("token");
       const sessionStaffInfo = sessionStorage.getItem("staffInfo");
       let sessionStaffId = null;
-      
+
       if (sessionStaffInfo) {
         try {
           const parsedInfo = JSON.parse(sessionStaffInfo);
@@ -64,7 +65,7 @@ const QueueForm = ({ onSuccess }) => {
           console.error("Error parsing sessionStorage staffInfo:", e);
         }
       }
-      
+
       if (!sessionToken || !sessionStaffId) {
         console.error("No valid session found, redirecting to login");
         navigate("/login");
@@ -99,16 +100,16 @@ const QueueForm = ({ onSuccess }) => {
     error: staffError,
     refetch: refetchStaff
   } = useQuery(GET_QUEUESTAFF_PROFILE, {
-    variables: { 
-      staffId: staffId ? parseInt(staffId, 10) : null 
+    variables: {
+      staffId: staffId ? parseInt(staffId, 10) : null
     },
     skip: !staffId,
     fetchPolicy: "network-only",
     onError: (error) => {
       console.error("Staff profile query error:", error);
       // If query fails, try to use stored data
-      const storedStaffInfo = localStorage.getItem("staffInfo") || 
-                             sessionStorage.getItem("staffInfo");
+      const storedStaffInfo = localStorage.getItem("staffInfo") ||
+        sessionStorage.getItem("staffInfo");
       if (storedStaffInfo) {
         try {
           const parsedInfo = JSON.parse(storedStaffInfo);
@@ -117,7 +118,7 @@ const QueueForm = ({ onSuccess }) => {
           console.error("Error parsing stored staff info:", e);
         }
       }
-      
+
       if (error.message.includes("Unauthorized") || error.message.includes("Authentication")) {
         console.error("Authentication error, clearing storage and redirecting");
         localStorage.clear();
@@ -163,7 +164,7 @@ const QueueForm = ({ onSuccess }) => {
     };
 
     const channel = new BroadcastChannel('admin-updates');
-    
+
     channel.onmessage = (event) => {
       if (event.data.type === 'DATA_UPDATED') {
         refetchDepartments();
@@ -186,19 +187,19 @@ const QueueForm = ({ onSuccess }) => {
 
     // Try to get departments from different possible response structures
     let departments = [];
-    
+
     // Try departments query first
     if (departmentsData?.departments) {
-      departments = Array.isArray(departmentsData.departments) 
-        ? departmentsData.departments 
+      departments = Array.isArray(departmentsData.departments)
+        ? departmentsData.departments
         : [];
     }
-    
+
     // If no departments found, try to extract from services
     if (departments.length === 0 && servicesData?.services) {
       const services = Array.isArray(servicesData.services) ? servicesData.services : [];
       const departmentMap = new Map();
-      
+
       services.forEach((service) => {
         if (service?.department) {
           const dept = service.department;
@@ -210,7 +211,7 @@ const QueueForm = ({ onSuccess }) => {
           }
         }
       });
-      
+
       departments = Array.from(departmentMap.values());
     }
 
@@ -286,6 +287,11 @@ const QueueForm = ({ onSuccess }) => {
   const handleSubmit = async () => {
     if (!staffId) {
       setError("Staff authentication required. Please login again.");
+      return;
+    }
+
+    if (!isOfficeHours()) {
+      setError(getOfficeHoursMessage());
       return;
     }
 
@@ -453,8 +459,8 @@ const QueueForm = ({ onSuccess }) => {
           <div className="queue-error-container">
             <div className="queue-error-message">
               <p>Authentication required. Please login.</p>
-              <button 
-                className="queue-retry-btn" 
+              <button
+                className="queue-retry-btn"
                 onClick={() => navigate("/login")}
               >
                 Go to Login
@@ -469,7 +475,7 @@ const QueueForm = ({ onSuccess }) => {
 
   if (staffError || departmentsError || servicesError) {
     const errorMessage = staffError?.message || departmentsError?.message || servicesError?.message;
-    
+
     return (
       <div className="queue-page-wrapper">
         <Header />
@@ -477,14 +483,14 @@ const QueueForm = ({ onSuccess }) => {
           <div className="queue-error-container">
             <div className="queue-error-message">
               <p>Error loading data: {errorMessage}</p>
-              <button 
-                className="queue-retry-btn" 
+              <button
+                className="queue-retry-btn"
                 onClick={() => window.location.reload()}
               >
                 Retry
               </button>
-              <button 
-                className="queue-logout-btn" 
+              <button
+                className="queue-logout-btn"
                 onClick={handleLogout}
               >
                 Logout
@@ -501,39 +507,12 @@ const QueueForm = ({ onSuccess }) => {
     <div className="queue-page-wrapper">
       <Header />
       <div className="queue-home-container">
-        {/* Staff Menu */}
-        <div className="queue-staff-menu-container">
-          <button 
-            className="queue-staff-menu-toggle"
-            onClick={() => setQueueStaffMenuOpen(!queueStaffMenuOpen)}
-          >
-            <div className="queue-staff-avatar">
-              <User size={20} />
-            </div>
-            <div className="queue-staff-info">
-              <span className="queue-staff-name">{staffUsername || "Queue Staff"}</span>
-              <span className="queue-staff-role">queue staff</span>
-            </div>
-            <ChevronDown size={18} className={`queue-staff-chevron ${queueStaffMenuOpen ? 'queue-staff-chevron-open' : ''}`} />
-          </button>
-          
-          {queueStaffMenuOpen && (
-            <div className="queue-staff-menu-dropdown">
-              <button className="queue-staff-menu-item" onClick={handleManageSettings}>
-                <Settings size={18} />
-                <span>Manage Settings</span>
-              </button>
-              <div className="queue-staff-menu-divider"></div>
-              <button className="queue-staff-menu-item queue-staff-menu-logout" onClick={handleLogout}>
-                <LogOut size={18} />
-                <span>Logout</span>
-              </button>
-            </div>
-          )}
-        </div>
+        <div className="queue-top-section">
+          <div className="queue-top-section-left">
+            {/* Left side spacer */}
+          </div>
 
-        <div className="queue-form-container">
-          <div className="queue-form-header">
+          <div className="queue-top-section-center">
             <div className="queue-progress-container">
               <div className="queue-progress-steps">
                 {[1, 2, 3, 4].map((step) => (
@@ -555,7 +534,43 @@ const QueueForm = ({ onSuccess }) => {
                 ></div>
               </div>
             </div>
+          </div>
 
+          <div className="queue-top-section-right">
+            <div className="queue-staff-menu-container">
+              <button
+                className="queue-staff-menu-toggle"
+                onClick={() => setQueueStaffMenuOpen(!queueStaffMenuOpen)}
+                style={{ padding: '0.4rem 0.6rem', border: 'none', background: 'transparent', height: 'auto' }}
+              >
+                <div className="queue-staff-avatar">
+                  <User size={18} />
+                </div>
+                <div className="queue-staff-info">
+                  <span className="queue-staff-name" style={{ fontSize: '0.85rem' }}>{staffUsername || "Staff"}</span>
+                </div>
+                <ChevronDown size={14} className={`queue-staff-chevron ${queueStaffMenuOpen ? 'queue-staff-chevron-open' : ''}`} />
+              </button>
+
+              {queueStaffMenuOpen && (
+                <div className="queue-staff-menu-dropdown">
+                  <button className="queue-staff-menu-item" onClick={handleManageSettings}>
+                    <Settings size={18} />
+                    <span>Settings</span>
+                  </button>
+                  <div className="queue-staff-menu-divider"></div>
+                  <button className="queue-staff-menu-item queue-staff-menu-logout" onClick={handleLogout}>
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="queue-form-container">
+          <div className="queue-form-header">
             <div className="queue-form-title-section">
               <h2 className="queue-form-title">{getStepTitle()}</h2>
               <p className="queue-form-subtitle">{getStepSubtitle()}</p>
@@ -745,9 +760,9 @@ const QueueForm = ({ onSuccess }) => {
 
                 <div className="queue-actions-center">
                   {currentStep >= 2 && (
-                    <button 
-                      type="button" 
-                      className="queue-reset-btn" 
+                    <button
+                      type="button"
+                      className="queue-reset-btn"
                       onClick={resetForm}
                       disabled={isSubmitting}
                     >
@@ -759,9 +774,9 @@ const QueueForm = ({ onSuccess }) => {
 
                 <div className="queue-actions-right">
                   {currentStep < 4 ? (
-                    <button 
-                      type="button" 
-                      className="queue-next-btn" 
+                    <button
+                      type="button"
+                      className="queue-next-btn"
                       onClick={handleNext}
                       disabled={isSubmitting}
                     >

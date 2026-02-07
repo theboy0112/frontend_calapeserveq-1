@@ -53,28 +53,28 @@ const Login = () => {
       const existingAdminData =
         role !== "admin"
           ? {
-              adminStaffId: localStorage.getItem("adminStaffId"),
-              adminStaffUsername: localStorage.getItem("adminStaffUsername"),
-              adminStaffInfo: localStorage.getItem("adminStaffInfo"),
-            }
+            adminStaffId: localStorage.getItem("adminStaffId"),
+            adminStaffUsername: localStorage.getItem("adminStaffUsername"),
+            adminStaffInfo: localStorage.getItem("adminStaffInfo"),
+          }
           : null;
 
       const existingQueueStaffData =
         role !== "queuestaff"
           ? {
-              queueStaffId: localStorage.getItem("queueStaffId"),
-              queueStaffUsername: localStorage.getItem("queueStaffUsername"),
-              queueStaffInfo: localStorage.getItem("queueStaffInfo"),
-            }
+            queueStaffId: localStorage.getItem("queueStaffId"),
+            queueStaffUsername: localStorage.getItem("queueStaffUsername"),
+            queueStaffInfo: localStorage.getItem("queueStaffInfo"),
+          }
           : null;
 
       const existingStaffData =
         role !== "staff"
           ? {
-              staffId: localStorage.getItem("staffId"),
-              staffUsername: localStorage.getItem("staffUsername"),
-              staffInfo: localStorage.getItem("staffInfo"),
-            }
+            staffId: sessionStorage.getItem("staffId") || localStorage.getItem("staffId"),
+            staffUsername: sessionStorage.getItem("staffUsername") || localStorage.getItem("staffUsername"),
+            staffInfo: sessionStorage.getItem("staffInfo") || localStorage.getItem("staffInfo"),
+          }
           : null;
 
       console.log("Preserving data for other roles:", {
@@ -128,8 +128,10 @@ const Login = () => {
       localStorage.setItem("token", access_token);
       localStorage.setItem("role", role);
 
+      sessionStorage.setItem("token", access_token);
       sessionStorage.setItem("userRole", role);
       sessionStorage.setItem("staffInfo", JSON.stringify(staffInfo));
+      sessionStorage.setItem("staffId", staff.staffId || staffInfo.id);
       sessionStorage.setItem("isLoggedIn", "true");
 
       if (role === "admin") {
@@ -138,7 +140,6 @@ const Login = () => {
         localStorage.setItem("adminStaffId", staff.staffId || staffInfo.id);
         localStorage.setItem("adminStaffUsername", staffInfo.username);
         localStorage.setItem("adminStaffInfo", JSON.stringify(staffInfo));
-        sessionStorage.setItem("staffId", staff.staffId || staffInfo.id);
       } else if (role === "queuestaff") {
         sessionStorage.setItem("isQueueStaffLoggedIn", "true");
         localStorage.setItem("isQueueStaffLoggedIn", "true");
@@ -330,7 +331,7 @@ const Login = () => {
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   disabled={isLoading}
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showPassword ? <FaEyeSlash className="eye-icon" /> : <FaEye className="eye-icon" />}
                 </button>
               </div>
               <div className="forgot-password-container">
@@ -342,23 +343,24 @@ const Login = () => {
                   Forgot Password?
                 </button>
               </div>
+              <button
+                type="submit"
+                className={`login-button ${isLoading ? "loading" : ""}`}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="loading-dots">
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                    <div className="dot"></div>
+                  </div>
+                ) : (
+                  "Login"
+                )}
+              </button>
             </div>
 
-            <button
-              type="submit"
-              className={`login-button ${isLoading ? "loading" : ""}`}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <div className="loading-dots">
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                  <div className="dot"></div>
-                </div>
-              ) : (
-                "Login"
-              )}
-            </button>
+
           </form>
         </div>
       </div>

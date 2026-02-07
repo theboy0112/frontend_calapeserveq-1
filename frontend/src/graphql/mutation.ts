@@ -164,8 +164,8 @@ export const CREATE_ROLE = gql`
 `;
 
 export const CALL_NEXT_REPEAT = gql`
-  mutation CallNextRepeat($queueId: Int!) {
-    callNextRepeat(queueId: $queueId) {
+  mutation CallNextRepeat($queueId: Int!, $counterId: Int) {
+    callNextRepeat(queueId: $queueId, counterId: $counterId) {
       queueId
       status
       repeatCount
@@ -178,15 +178,11 @@ export const CALL_NEXT = gql`
     $staffId: Int!
     $counterId: Int!
     $departmentId: Int!
-    $priority: String!
   ) {
     callNext(
-      staff: {
-        staffId: $staffId
-        counterId: $counterId
-        departmentId: $departmentId
-        priority: $priority
-      }
+      staffId: $staffId
+      counterId: $counterId
+      departmentId: $departmentId
     ) {
       queueId
       number

@@ -121,6 +121,10 @@ export const GET_QUEUES_BY_DEPARTMENT = gql`
         serviceId
         serviceName
       }
+      counter {
+        counterId
+        counterName
+      }
     }
   }
 `;

@@ -6,7 +6,6 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import { GET_DEPARTMENTS, GET_QUEUES_BY_DEPARTMENT } from "../../graphql/query";
 
-// GraphQL query for ads
 const GET_ADS = gql`
   query GetAds {
     ads {
@@ -20,8 +19,6 @@ const GET_ADS = gql`
 
 const TVMonitor = () => {
   const [currentTime, setCurrentTime] = useState("");
-  const [nextRegularTickets, setNextRegularTickets] = useState([]);
-  const [nextPriorityTickets, setNextPriorityTickets] = useState([]);
   const [departmentId, setDepartmentId] = useState(null);
   const [departmentName, setDepartmentName] = useState("");
   const [departmentPrefix, setDepartmentPrefix] = useState("");
@@ -45,11 +42,9 @@ const TVMonitor = () => {
     pollInterval: 3000,
   });
 
-  // Ads
   const { data: adsData, loading: adsLoading } = useQuery(GET_ADS);
   const ads = adsData?.ads || [];
 
-  // BASE_URL for images
   const BASE_URL = import.meta.env.VITE_GRAPHQL_URI
     ? import.meta.env.VITE_GRAPHQL_URI.replace("/graphql", "")
     : "http://localhost:3000";
@@ -78,9 +73,7 @@ const TVMonitor = () => {
   useEffect(() => {
     if (!departmentId) return;
 
-    const eventSource = new EventSource(
-      "https://queuecalape.onrender.com/queue/stream",
-    );
+    const eventSource = new EventSource(`${BASE_URL}/queue/stream`);
 
     eventSource.onmessage = (event) => {
       try {
@@ -135,25 +128,6 @@ const TVMonitor = () => {
           counterName: q.counter?.counterName || "Unknown",
         }));
       setServingTickets(serving);
-
-      const waiting = queues
-        .filter((q) => q.status.toUpperCase() === "WAITING")
-        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-
-      // Regular tickets
-      const regular = waiting
-        .filter((q) => q.priority.toLowerCase() === "regular")
-        .slice(0, 3)
-        .map((q) => `${q.department?.prefix || departmentPrefix}-${q.number}`);
-
-      // Priority tickets (Senior, PWD, Pregnant)
-      const priority = waiting
-        .filter((q) => q.priority.toLowerCase() !== "regular")
-        .slice(0, 3)
-        .map((q) => `${q.department?.prefix || departmentPrefix}-${q.number}`);
-
-      setNextRegularTickets(regular);
-      setNextPriorityTickets(priority);
     }
   }, [queueData, departmentPrefix]);
 
@@ -167,13 +141,9 @@ const TVMonitor = () => {
       setDepartmentId(selectedId);
       setDepartmentName(selectedDept.departmentName);
       setDepartmentPrefix(selectedDept.prefix || "");
-      setCurrentTicket(null);
-      setNextRegularTickets([]);
-      setNextPriorityTickets([]);
     }
   };
 
-  // Local Storage Polling for Ad Settings
   const [showAdsGlobally, setShowAdsGlobally] = useState(() => {
     const saved = localStorage.getItem("tv_show_ads_global");
     return saved !== null ? JSON.parse(saved) : true;
@@ -262,20 +232,29 @@ const TVMonitor = () => {
         </div>
 
         <div className="main-layout">
-          <div className="queue-section">
-            <div className="queue-cards">
-              <div className="now-serving-panel">
-                <div className="label">Now Serving</div>
-                <div className="serving-tickets-list">
+          {/* LEFT COLUMN: Now Serving Table */}
+
+          <div className="serving-column">
+            <div className="now-serving-title">Now Serving</div>
+            <div className="now-serving-panel">
+              <div className="serving-table">
+                <div className="table-header">
+                  <div className="cell counter-cell">Counter</div>
+                  <div className="cell ticket-cell">Ticket</div>
+                </div>
+                <div className="serving-table-body">
                   {queueLoading ? (
                     <div className="ticket-placeholder">Loading...</div>
                   ) : servingTickets.length > 0 ? (
                     servingTickets.map((item, idx) => (
-                      <div key={idx} className="serving-ticket-item">
-                        <div className="ticket-number">{item.ticket}</div>
-                        <div className="counter-name-label">
-                          {item.counterName}
+                      <div
+                        key={idx}
+                        className={`table-row ${idx === 0 ? "recent-call" : ""}`}
+                      >
+                        <div className="cell counter-cell">
+                          {item.counterName.replace(/Counter\s*/i, "")}
                         </div>
+                        <div className="cell ticket-cell">{item.ticket}</div>
                       </div>
                     ))
                   ) : (
@@ -285,129 +264,86 @@ const TVMonitor = () => {
                   )}
                 </div>
               </div>
-
-              <div className="previous-panel">
-                <div className="split-columns">
-                  {/* Regular Column */}
-                  <div className="queue-column">
-                    <div className="label">Regular</div>
-                    <div className="previous-tickets">
-                      {nextRegularTickets.length > 0 ? (
-                        nextRegularTickets.map((ticket, index) => (
-                          <div key={index} className="previous-ticket">
-                            <div className="prev-number">{ticket}</div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="no-previous">No regular tickets</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="column-divider"></div>
-
-                  {/* Priority Column */}
-                  <div className="queue-column">
-                    <div className="label priority-label">Priority</div>
-                    <div className="previous-tickets">
-                      {nextPriorityTickets.length > 0 ? (
-                        nextPriorityTickets.map((ticket, index) => (
-                          <div
-                            key={index}
-                            className="previous-ticket priority-ticket"
-                          >
-                            <div className="prev-number">{ticket}</div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="no-previous">No priority tickets</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* Ads Section */}
-          {showAdsGlobally && (
-            <div className="ad-section">
-              {adsLoading || visibleAds.length === 0 ? (
-                <div className="ad-placeholder">
-                  <div className="ad-content">
-                    <span className="ad-text">Advertisement</span>
-                    <span className="coming-soon">Coming Soon</span>
+          {/* RIGHT COLUMN: Ads */}
+          <div className="ads-column">
+            {showAdsGlobally && (
+              <div className="ad-section">
+                {adsLoading || visibleAds.length === 0 ? (
+                  <div className="ad-placeholder">
+                    <div className="ad-content">
+                      <span className="ad-text">Advertisement</span>
+                      <span className="coming-soon">Coming Soon</span>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="ad-card" style={{ position: "relative" }}>
-                  {/* IMAGE PREVIEW */}
-                  {visibleAds[currentAdIndex] &&
-                    visibleAds[currentAdIndex].mimetype?.startsWith(
-                      "image/",
-                    ) && (
-                      <img
-                        src={getImageUrl(visibleAds[currentAdIndex].filepath)}
-                        alt={visibleAds[currentAdIndex].filename}
-                        className="ad-media"
-                      />
-                    )}
+                ) : (
+                  <div className="ad-card" style={{ position: "relative" }}>
+                    {visibleAds[currentAdIndex] &&
+                      visibleAds[currentAdIndex].mimetype?.startsWith(
+                        "image/",
+                      ) && (
+                        <img
+                          src={getImageUrl(visibleAds[currentAdIndex].filepath)}
+                          alt={visibleAds[currentAdIndex].filename}
+                          className="ad-media"
+                        />
+                      )}
 
-                  {/* VIDEO PREVIEW */}
-                  {visibleAds[currentAdIndex] &&
-                    visibleAds[currentAdIndex].mimetype?.startsWith(
-                      "video/",
-                    ) && (
-                      <video
-                        ref={videoRef}
-                        src={getImageUrl(visibleAds[currentAdIndex].filepath)}
-                        className="ad-media"
-                        autoPlay
-                        loop
-                        muted={isMuted}
-                      />
-                    )}
+                    {visibleAds[currentAdIndex] &&
+                      visibleAds[currentAdIndex].mimetype?.startsWith(
+                        "video/",
+                      ) && (
+                        <video
+                          ref={videoRef}
+                          src={getImageUrl(visibleAds[currentAdIndex].filepath)}
+                          className="ad-media"
+                          autoPlay
+                          loop
+                          muted={isMuted}
+                        />
+                      )}
 
-                  {/* Audio Toggle Button */}
-                  <button
-                    onClick={toggleMute}
-                    className="audio-toggle-btn"
-                    style={{
-                      position: "absolute",
-                      bottom: "20px",
-                      right: "20px",
-                      background: "rgba(0,0,0,0.6)",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "50%",
-                      width: "40px",
-                      height: "40px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      zIndex: 10,
-                      transition: "background 0.3s",
-                    }}
-                    onMouseOver={(e) =>
-                      (e.target.style.background = "rgba(0,0,0,0.8)")
-                    }
-                    onMouseOut={(e) =>
-                      (e.target.style.background = "rgba(0,0,0,0.6)")
-                    }
-                    title={isMuted ? "Unmute" : "Mute"}
-                  >
-                    {isMuted ? (
-                      <FaVolumeMute size={20} />
-                    ) : (
-                      <FaVolumeUp size={20} />
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                    <button
+                      onClick={toggleMute}
+                      className="audio-toggle-btn"
+                      style={{
+                        position: "absolute",
+                        bottom: "20px",
+                        right: "20px",
+                        background: "rgba(0,0,0,0.6)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "50%",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        zIndex: 10,
+                        transition: "background 0.3s",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.target.style.background = "rgba(0,0,0,0.8)")
+                      }
+                      onMouseOut={(e) =>
+                        (e.target.style.background = "rgba(0,0,0,0.6)")
+                      }
+                      title={isMuted ? "Unmute" : "Mute"}
+                    >
+                      {isMuted ? (
+                        <FaVolumeMute size={20} />
+                      ) : (
+                        <FaVolumeUp size={20} />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <Footer />

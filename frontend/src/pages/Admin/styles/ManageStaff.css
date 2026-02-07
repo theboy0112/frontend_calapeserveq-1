@@ -25,8 +25,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-message {
@@ -86,8 +91,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .staff-form-modal {
@@ -103,11 +113,12 @@
 }
 
 @keyframes slideIn {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(-20px);
   }
-  to { 
+
+  to {
     opacity: 1;
     transform: translateY(0);
   }
@@ -489,34 +500,37 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .staff-content {
-    padding: 16px;
+  .staff-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding: 0 16px;
   }
-  
+
   .staff-form-modal {
     padding: 24px;
     margin: 16px;
     border-radius: 8px;
   }
-  
+
   .table-header {
     padding: 16px 20px;
   }
-  
+
   .table-title {
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
   }
-  
+
   .staff-table {
     overflow-x: auto;
   }
-  
+
   .staff-table table {
     min-width: 600px;
   }
-  
+
   .staff-table th,
   .staff-name-cell,
   .department-cell,
@@ -524,42 +538,42 @@
   .actions-cell {
     padding: 12px 16px;
   }
-  
+
   .form-actions {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .cancel-btn,
   .submit-btn {
     width: 100%;
   }
-  
+
   .staff-info {
     gap: 10px;
   }
-  
+
   .staff-avatar {
     width: 36px;
     height: 36px;
     font-size: 14px;
   }
-  
+
   .actions {
     flex-direction: column;
     gap: 6px;
   }
-  
+
   .edit-btn,
   .delete-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .empty-state {
     padding: 40px 16px;
   }
-  
+
   .add-staff-floating-btn {
     bottom: 20px;
     right: 20px;
@@ -567,7 +581,7 @@
     height: 50px;
     font-size: 20px;
   }
-  
+
   .add-staff-floating-btn .btn-icon {
     font-size: 18px;
   }

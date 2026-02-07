@@ -89,6 +89,7 @@ body {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -140,6 +141,7 @@ body {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -170,6 +172,13 @@ body {
   color: var(--text-primary);
   margin: 0;
   line-height: 1.2;
+}
+
+.counter-name-inline {
+  color: var(--primary-color);
+  font-weight: 500;
+  opacity: 0.8;
+  margin-left: 8px;
 }
 
 .current-time {
@@ -206,11 +215,9 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    var(--primary-color),
-    var(--primary-hover)
-  );
+  background: linear-gradient(135deg,
+      var(--primary-color),
+      var(--primary-hover));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,6 +272,7 @@ body {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -346,10 +354,12 @@ body {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.4;
   }
@@ -531,9 +541,12 @@ body {
 
 .queue-container {
   /* background: var(--surface); removed to let split container handle bg */
-  overflow: visible; /* changed from hidden to visible */
-  border: none; /* removed border */
-  box-shadow: none; /* removed shadow */
+  overflow: visible;
+  /* changed from hidden to visible */
+  border: none;
+  /* removed border */
+  box-shadow: none;
+  /* removed shadow */
 }
 
 /* Split Queue Layout */
@@ -639,7 +652,8 @@ body {
 
 .queue-header {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr; /* 3 columns now */
+  grid-template-columns: 1fr 1.5fr 1fr;
+  /* 3 columns now */
   padding: 12px 16px;
   background: var(--surface-hover);
   border-bottom: 1px solid var(--border-color);
@@ -653,7 +667,8 @@ body {
 
 .queue-item {
   display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr; /* Match header */
+  grid-template-columns: 1fr 1.5fr 1fr;
+  /* Match header */
   align-items: center;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border-color);
@@ -785,7 +800,7 @@ body {
 }
 
 /* Make sure the buttons container doesn't get hidden */
-.now-serving-card > .action-buttons {
+.now-serving-card>.action-buttons {
   display: flex !important;
 }
 

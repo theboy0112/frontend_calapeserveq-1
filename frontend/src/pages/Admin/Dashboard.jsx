@@ -43,7 +43,20 @@ import { logoutPreservingRoleData } from "../../utils/logoutHelper";
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("dashboard");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const [findAll, setStaffList] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [services, setServices] = useState([]);
@@ -242,9 +255,8 @@ const AdminDashboard = () => {
 
           <nav className="sidebar-nav">
             <button
-              className={`nav-item ${
-                activeSection === "dashboard" ? "active" : ""
-              }`}
+              className={`nav-item ${activeSection === "dashboard" ? "active" : ""
+                }`}
               onClick={() => setActiveSection("dashboard")}
               title="Dashboard"
             >
@@ -253,9 +265,8 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${
-                activeSection === "profile" ? "active" : ""
-              }`}
+              className={`nav-item ${activeSection === "profile" ? "active" : ""
+                }`}
               onClick={() => setActiveSection("profile")}
               title="Profile"
             >
@@ -264,9 +275,8 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${
-                activeSection === "staff" ? "active" : ""
-              }`}
+              className={`nav-item ${activeSection === "staff" ? "active" : ""
+                }`}
               onClick={() => setActiveSection("staff")}
               title="Manage Staff"
             >
@@ -275,9 +285,8 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${
-                activeSection === "departments" ? "active" : ""
-              }`}
+              className={`nav-item ${activeSection === "departments" ? "active" : ""
+                }`}
               onClick={() => setActiveSection("departments")}
               title="Manage Departments"
             >
@@ -288,9 +297,8 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${
-                activeSection === "services" ? "active" : ""
-              }`}
+              className={`nav-item ${activeSection === "services" ? "active" : ""
+                }`}
               onClick={() => setActiveSection("services")}
               title="Manage Services"
             >
@@ -299,9 +307,8 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${
-                activeSection === "counters" ? "active" : ""
-              }`}
+              className={`nav-item ${activeSection === "counters" ? "active" : ""
+                }`}
               onClick={() => setActiveSection("counters")}
               title="Manage Counters"
             >
@@ -318,10 +325,9 @@ const AdminDashboard = () => {
               {sidebarOpen && <span className="nav-text">Manage Ads</span>}
             </button>
             <button
-              className={`nav-item ${
-                activeSection === "reports" ? "active" : "" 
-              }`}
-              onClick={() => setActiveSection("reports")} 
+              className={`nav-item ${activeSection === "reports" ? "active" : ""
+                }`}
+              onClick={() => setActiveSection("reports")}
               title="Reports"
             >
               <FiDownload className="nav-icon" size={20} />
@@ -342,35 +348,45 @@ const AdminDashboard = () => {
         </div>
 
         <div
-          className={`main-content ${
-            sidebarOpen ? "sidebar-open" : "sidebar-closed"
-          }`}
+          className={`main-content ${sidebarOpen ? "sidebar-open" : "sidebar-closed"
+            }`}
         >
           <div className="content-header">
-            <div className="page-title">
-              <h1>
-                {activeSection === "dashboard" && "Dashboard"}
-                {activeSection === "profile" && "Profile Settings"}
-                {activeSection === "staff" && "Staff Management"}
-                {activeSection === "departments" && "Department Management"}
-                {activeSection === "services" && "Services Management"}
-                {activeSection === "counters" && "Counter Management"}
-                {activeSection === "ads" && "Advertisement Management"}
-              </h1>
-              <p className="page-subtitle">
-                {activeSection === "dashboard" &&
-                  "Overview of municipal operations"}
-                {activeSection === "profile" && "Manage your account settings"}
-                {activeSection === "staff" && "Manage staff members and roles"}
-                {activeSection === "departments" &&
-                  "Organize departments and structure"}
-                {activeSection === "services" &&
-                  "Manage municipal services and offerings"}
-                {activeSection === "counters" &&
-                  "Manage service counters and their departments"}
-                {activeSection === "ads" &&
-                  "Upload and manage advertisements for TV monitors"}
-              </p>
+            <div className="header-left">
+              {!sidebarOpen && (
+                <button
+                  className="mobile-toggle-btn"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label="Open sidebar"
+                >
+                  <FiMenu size={20} />
+                </button>
+              )}
+              <div className="page-title">
+                <h1>
+                  {activeSection === "dashboard" && "Dashboard"}
+                  {activeSection === "profile" && "Profile Settings"}
+                  {activeSection === "staff" && "Staff Management"}
+                  {activeSection === "departments" && "Department Management"}
+                  {activeSection === "services" && "Services Management"}
+                  {activeSection === "counters" && "Counter Management"}
+                  {activeSection === "ads" && "Advertisement Management"}
+                </h1>
+                <p className="page-subtitle">
+                  {activeSection === "dashboard" &&
+                    "Overview of municipal operations"}
+                  {activeSection === "profile" && "Manage your account settings"}
+                  {activeSection === "staff" && "Manage staff members and roles"}
+                  {activeSection === "departments" &&
+                    "Organize departments and structure"}
+                  {activeSection === "services" &&
+                    "Manage municipal services and offerings"}
+                  {activeSection === "counters" &&
+                    "Manage service counters and their departments"}
+                  {activeSection === "ads" &&
+                    "Upload and manage advertisements for TV monitors"}
+                </p>
+              </div>
             </div>
           </div>
 
