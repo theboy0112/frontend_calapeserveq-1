@@ -2,7 +2,8 @@ import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { createUploadLink } from "apollo-upload-client";
 
-const GRAPHQL_URI = import.meta.env.VITE_GRAPHQL_URI || "http://localhost:3000/graphql";
+const GRAPHQL_URI =
+  import.meta.env.VITE_GRAPHQL_URI || "http://localhost:3000/graphql";
 
 const uploadLink = createUploadLink({
   uri: GRAPHQL_URI,
@@ -10,14 +11,14 @@ const uploadLink = createUploadLink({
 });
 
 const authLink = setContext((_, { headers }) => {
-  // Try sessionStorage first for tab isolation, then localStorage for persistence
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const token =
+    sessionStorage.getItem("token") || localStorage.getItem("token");
 
   return {
     headers: {
       ...headers,
       authorization: token ? `Bearer ${token}` : "",
-    }
+    },
   };
 });
 

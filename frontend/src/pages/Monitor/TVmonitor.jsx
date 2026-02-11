@@ -51,6 +51,9 @@ const TVMonitor = () => {
 
   const getImageUrl = (filepath) => {
     if (!filepath) return "";
+    if (filepath.startsWith("http://") || filepath.startsWith("https://")) {
+      return filepath;
+    }
     return `${BASE_URL}${filepath.startsWith("/") ? "" : "/"}${filepath}`;
   };
 
@@ -232,15 +235,13 @@ const TVMonitor = () => {
         </div>
 
         <div className="main-layout">
-          {/* LEFT COLUMN: Now Serving Table */}
-
           <div className="serving-column">
             <div className="now-serving-title">Now Serving</div>
             <div className="now-serving-panel">
               <div className="serving-table">
-                <div className="table-header">
-                  <div className="cell counter-cell">Counter</div>
-                  <div className="cell ticket-cell">Ticket</div>
+                <div className="tvm-table-header">
+                  <div className="tvm-cell tvm-counter-cell">Counter</div>
+                  <div className="tvm-cell tvm-ticket-cell">Ticket</div>
                 </div>
                 <div className="serving-table-body">
                   {queueLoading ? (
@@ -249,12 +250,16 @@ const TVMonitor = () => {
                     servingTickets.map((item, idx) => (
                       <div
                         key={idx}
-                        className={`table-row ${idx === 0 ? "recent-call" : ""}`}
+                        className={`tvm-table-row ${idx === 0 ? "recent-call" : ""}`}
                       >
-                        <div className="cell counter-cell">
-                          {item.counterName.replace(/Counter\s*/i, "")}
+                        <div className="tvm-cell tvm-counter-cell">
+                          <span className="tvm-counter-value">
+                            {item.counterName.replace(/Counter\s*/i, "")}
+                          </span>
                         </div>
-                        <div className="cell ticket-cell">{item.ticket}</div>
+                        <div className="tvm-cell tvm-ticket-cell">
+                          {item.ticket}
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -267,28 +272,37 @@ const TVMonitor = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Ads */}
           <div className="ads-column">
             {showAdsGlobally && (
-              <div className="ad-section">
+              <div className="tvm-ad-section">
                 {adsLoading || visibleAds.length === 0 ? (
-                  <div className="ad-placeholder">
-                    <div className="ad-content">
-                      <span className="ad-text">Advertisement</span>
-                      <span className="coming-soon">Coming Soon</span>
+                  <div className="tvm-ad-placeholder">
+                    <div className="tvm-ad-content">
+                      <span className="tvm-ad-text">Advertisement</span>
+                      <span className="tvm-coming-soon">Coming Soon</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="ad-card" style={{ position: "relative" }}>
+                  <div className="tvm-ad-card" style={{ position: "relative" }}>
                     {visibleAds[currentAdIndex] &&
                       visibleAds[currentAdIndex].mimetype?.startsWith(
                         "image/",
                       ) && (
-                        <img
-                          src={getImageUrl(visibleAds[currentAdIndex].filepath)}
-                          alt={visibleAds[currentAdIndex].filename}
-                          className="ad-media"
-                        />
+                        <>
+                          <div
+                            className="tvm-ad-background-blur"
+                            style={{
+                              backgroundImage: `url(${getImageUrl(visibleAds[currentAdIndex].filepath)})`,
+                            }}
+                          />
+                          <img
+                            src={getImageUrl(
+                              visibleAds[currentAdIndex].filepath,
+                            )}
+                            alt={visibleAds[currentAdIndex].filename}
+                            className="tvm-ad-media"
+                          />
+                        </>
                       )}
 
                     {visibleAds[currentAdIndex] &&
@@ -298,7 +312,7 @@ const TVMonitor = () => {
                         <video
                           ref={videoRef}
                           src={getImageUrl(visibleAds[currentAdIndex].filepath)}
-                          className="ad-media"
+                          className="tvm-ad-media"
                           autoPlay
                           loop
                           muted={isMuted}

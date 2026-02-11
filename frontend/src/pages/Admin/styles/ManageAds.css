@@ -4,7 +4,7 @@
   padding: 2rem;
   background-color: #f9f9f9;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(194, 16, 16, 0.1);
   font-family: Arial, sans-serif;
 }
 
@@ -72,7 +72,7 @@
 }
 
 .upload-container .btn-cancel {
-  background-color: #6c757d;
+  background-color: #2478c2;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
@@ -100,13 +100,13 @@
 
 .uploaded-files h3 {
   margin: 0 0 1.5rem 0;
-  color: #333;
+  color: #166fc2;
   font-size: 1.25rem;
 }
 
 .no-ads {
   text-align: center;
-  color: #888;
+  color: #df0a14;
   padding: 2rem;
   background-color: #fff;
   border-radius: 8px;
@@ -124,13 +124,15 @@
   border: 1px solid #ddd;
   border-radius: 12px;
   overflow: hidden;
-  transition: box-shadow 0.3s, border-color 0.3s;
+  transition:
+    box-shadow 0.3s,
+    border-color 0.3s;
   display: flex;
   flex-direction: column;
 }
 
 .ad-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border-color: #166fc2;
 }
 
@@ -194,7 +196,17 @@
   display: flex;
   gap: 0.5rem;
   padding: 0 1rem 1rem 1rem;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tv-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
 }
 
 .btn-edit,

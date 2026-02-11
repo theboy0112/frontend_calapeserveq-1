@@ -46,10 +46,13 @@ const DELETE_AD = gql`
   }
 `;
 
-
-
-
-const AdItem = ({ ad, getImageUrl, selectedAds, toggleAdSelection, handleDelete }) => {
+const AdItem = ({
+  ad,
+  getImageUrl,
+  selectedAds,
+  toggleAdSelection,
+  handleDelete,
+}) => {
   const [resolution, setResolution] = useState(null);
 
   return (
@@ -59,7 +62,11 @@ const AdItem = ({ ad, getImageUrl, selectedAds, toggleAdSelection, handleDelete 
           <img
             src={getImageUrl(ad.filepath)}
             alt={ad.filename}
-            onLoad={(e) => setResolution(`${e.target.naturalWidth} x ${e.target.naturalHeight}`)}
+            onLoad={(e) =>
+              setResolution(
+                `${e.target.naturalWidth} x ${e.target.naturalHeight}`,
+              )
+            }
             onError={(e) => {
               e.target.style.display = "none";
               e.target.nextSibling.style.display = "flex";
@@ -71,7 +78,9 @@ const AdItem = ({ ad, getImageUrl, selectedAds, toggleAdSelection, handleDelete 
           <video
             src={getImageUrl(ad.filepath)}
             controls
-            onLoadedMetadata={(e) => setResolution(`${e.target.videoWidth} x ${e.target.videoHeight}`)}
+            onLoadedMetadata={(e) =>
+              setResolution(`${e.target.videoWidth} x ${e.target.videoHeight}`)
+            }
             onError={(e) => {
               e.target.style.display = "none";
               e.target.nextSibling.style.display = "flex";
@@ -91,27 +100,40 @@ const AdItem = ({ ad, getImageUrl, selectedAds, toggleAdSelection, handleDelete 
           {ad.mimetype} • {new Date(ad.createdAt).toLocaleDateString()}
         </p>
         {resolution && (
-             <p className="ad-resolution" style={{ fontSize: '0.85rem', color: '#555', marginTop: '5px', fontWeight: '500' }}>
-               Dimensions: {resolution} px
-             </p>
+          <p
+            className="ad-resolution"
+            style={{
+              fontSize: "0.85rem",
+              color: "#555",
+              marginTop: "5px",
+              fontWeight: "500",
+            }}
+          >
+            Dimensions: {resolution} px
+          </p>
         )}
       </div>
 
       <div className="ad-actions">
         <label className="tv-checkbox">
+          Show on TV
           <input
             type="checkbox"
             checked={selectedAds.includes(String(ad.id))}
             onChange={() => toggleAdSelection(ad.id)}
           />
-          Show on TV
         </label>
-
         <button
           onClick={() => handleDelete(ad.id, ad.filename)}
           className="btn-delete"
           title="Delete"
-          style={{ color: "red", border: "none", background: "none", cursor: "pointer", fontSize: "1.2rem" }}
+          style={{
+            color: "red",
+            border: "none",
+            background: "none",
+            cursor: "pointer",
+            fontSize: "1.2rem",
+          }}
         >
           <FaTrash />
         </button>
@@ -138,8 +160,8 @@ const ManageAds = () => {
   const [updateAd] = useMutation(UPDATE_AD);
   const [deleteAd] = useMutation(DELETE_AD);
 
-   const BASE_URL = import.meta.env.VITE_GRAPHQL_URI
-    ? import.meta.env.VITE_GRAPHQL_URI.replace("/graphql", "") 
+  const BASE_URL = import.meta.env.VITE_GRAPHQL_URI
+    ? import.meta.env.VITE_GRAPHQL_URI.replace("/graphql", "")
     : "http://localhost:3000";
 
   const handleFileSelect = (e) => {
@@ -153,7 +175,7 @@ const ManageAds = () => {
     setSelectedAds((prev) =>
       prev.includes(id)
         ? prev.filter((prevId) => prevId !== id)
-        : [...prev, id]
+        : [...prev, id],
     );
   };
 
@@ -182,13 +204,8 @@ const ManageAds = () => {
         const img = new Image();
         img.onload = () => {
           URL.revokeObjectURL(objectUrl);
-          const ratio = img.width / img.height;
-          // 16:9 is ~1.77. Allow 1.7 to 1.8
-          if (ratio < 1.7 || ratio > 1.8) {
-            reject(`Invalid aspect ratio (${ratio.toFixed(2)}). Please upload a landscape image (16:9 ratio, e.g., 1920x1080).`);
-          } else {
-            resolve(true);
-          }
+
+          resolve(true);
         };
         img.onerror = () => {
           URL.revokeObjectURL(objectUrl);
@@ -201,7 +218,9 @@ const ManageAds = () => {
           URL.revokeObjectURL(objectUrl);
           const ratio = video.videoWidth / video.videoHeight;
           if (ratio < 1.7 || ratio > 1.8) {
-            reject(`Invalid aspect ratio (${ratio.toFixed(2)}). Please upload a landscape video (16:9 ratio, e.g., 1920x1080).`);
+            reject(
+              `Invalid aspect ratio (${ratio.toFixed(2)}). Please upload a landscape video (16:9 ratio, e.g., 1920x1080).`,
+            );
           } else {
             resolve(true);
           }
@@ -224,7 +243,11 @@ const ManageAds = () => {
     try {
       await validateMedia(selectedFile);
     } catch (error) {
-      Swal.fire("Validation Failed", typeof error === 'string' ? error : "Invalid file", "error");
+      Swal.fire(
+        "Validation Failed",
+        typeof error === "string" ? error : "Invalid file",
+        "error",
+      );
       return;
     }
 
@@ -280,7 +303,11 @@ const ManageAds = () => {
     try {
       await validateMedia(selectedFile);
     } catch (error) {
-      Swal.fire("Validation Failed", typeof error === 'string' ? error : "Invalid file", "error");
+      Swal.fire(
+        "Validation Failed",
+        typeof error === "string" ? error : "Invalid file",
+        "error",
+      );
       return;
     }
 
@@ -363,12 +390,13 @@ const ManageAds = () => {
     document.getElementById("file-input").value = "";
   };
 
- 
- const getImageUrl = (filepath) => {
-  if (!filepath) return "";
-
-  return `${BASE_URL}${filepath.startsWith("/") ? "" : "/"}${filepath}`;
-};
+  const getImageUrl = (filepath) => {
+    if (!filepath) return "";
+    if (filepath.startsWith("http://") || filepath.startsWith("https://")) {
+      return filepath;
+    }
+    return `${BASE_URL}${filepath.startsWith("/") ? "" : "/"}${filepath}`;
+  };
 
   if (loading) return <p>Loading ads...</p>;
 
@@ -423,8 +451,26 @@ const ManageAds = () => {
           <p className="no-ads">No advertisements uploaded yet.</p>
         ) : (
           <>
-            <div className="global-ads-toggle" style={{ marginBottom: "20px", padding: "10px", background: "#f8f9fa", borderRadius: "8px", border: "1px solid #dee2e6" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "1.1rem", fontWeight: "600" }}>
+            <div
+              className="global-ads-toggle"
+              style={{
+                marginBottom: "20px",
+                padding: "10px",
+                background: "#f8f9fa",
+                borderRadius: "8px",
+                border: "1px solid #dee2e6",
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  cursor: "pointer",
+                  fontSize: "1.1rem",
+                  fontWeight: "600",
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={showAdsGlobally}
@@ -433,7 +479,13 @@ const ManageAds = () => {
                 />
                 Enable Ads on TV Monitor (Master Switch)
               </label>
-              <p style={{ margin: "5px 0 0 30px", fontSize: "0.9rem", color: "#6c757d" }}>
+              <p
+                style={{
+                  margin: "5px 0 0 30px",
+                  fontSize: "0.9rem",
+                  color: "#6c757d",
+                }}
+              >
                 Uncheck this to hide ALL ads on the TV Monitor immediately.
               </p>
             </div>

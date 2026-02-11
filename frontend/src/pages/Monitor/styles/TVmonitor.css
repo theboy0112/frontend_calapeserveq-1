@@ -61,7 +61,7 @@
 
 .main-layout {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: minmax(350px, 25%) 1fr;
   gap: 2rem;
   align-items: stretch;
   flex: 1;
@@ -108,7 +108,7 @@
   width: 100%;
 }
 
-.table-header {
+.tvm-table-header {
   display: flex;
   background: #1e3a8a;
   color: white;
@@ -128,7 +128,7 @@
   display: none;
 }
 
-.table-row {
+.tvm-table-row {
   display: flex;
   border-bottom: 2px solid #e2e8f0;
   color: #1e3a8a;
@@ -138,10 +138,9 @@
 
 .recent-call {
   background: #f1f5f9;
-  /* Subtle highlight for the first row */
 }
 
-.cell {
+.tvm-cell {
   padding: 1.5rem;
   display: flex;
   align-items: center;
@@ -149,31 +148,51 @@
   text-align: center;
 }
 
-.counter-cell {
-  flex: 0 0 120px;
-  border-right: 2px solid #e2e8f0;
-  font-size: 2.5rem;
-  color: #fdfdfd;
+.tvm-counter-cell {
+  flex: 0 0 150px;
+  border-right: 2px solid #1c6eda;
+  display: flex;
+  color: 1e3a8a;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem !important;
 }
 
-.header-cell.counter-cell {
+.tvm-counter-label {
+  font-size: 0.875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tvm-counter-value {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #1e3a8a;
+  padding: 0.2rem 1rem;
+  border-radius: 8px;
+  min-width: 60px;
+}
+
+.header-cell.tvm-counter-cell {
   border-right: 2px solid #3b82f6;
 }
 
-.ticket-cell {
+.tvm-ticket-cell {
   flex: 1;
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 900;
+
   letter-spacing: -0.02em;
 }
 
-.table-header .cell {
+.tvm-table-header .tvm-cell {
   padding: 1rem;
   font-size: 1.25rem;
 }
 
-.ticket-placeholder {
-  color: #94a3b8;
+.tvm-ad-placeholder {
+  color: #a6b1c2;
   font-size: 1.25rem;
   text-align: center;
   padding: 3rem;
@@ -184,7 +203,7 @@
   font-style: italic;
 }
 
-.ad-section {
+.tvm-ad-section {
   width: 100%;
   height: 100%;
   display: flex;
@@ -197,24 +216,61 @@
   border: 1px solid #e2e8f0;
 }
 
-.ad-card {
+.tvm-ad-card {
   width: 100%;
   height: 100%;
   background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
+  justify-content: center;
   overflow: hidden;
+  position: relative;
 }
 
-.ad-media {
+.tvm-ad-background-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px);
+  opacity: 0.6;
+  z-index: 1;
+}
+
+.tvm-ad-media {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
+  position: relative;
+  z-index: 2;
 }
 
-@media (max-width: 1200px) {
+.tvm-ad-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tvm-ad-text {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #a6b1c2;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.tvm-coming-soon {
+  font-size: 1.5rem;
+  color: #64748b;
+}
+
+@media (max-width: 800px) {
   .main-layout {
     grid-template-columns: 1fr;
     gap: 2rem;
