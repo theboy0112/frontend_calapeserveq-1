@@ -144,6 +144,7 @@
   padding: 1.5rem;
   display: flex;
   align-items: center;
+  color: #b6bac7;
   justify-content: center;
   text-align: center;
 }
@@ -161,6 +162,7 @@
 .tvm-counter-label {
   font-size: 0.875rem;
   font-weight: 800;
+
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -182,7 +184,6 @@
   flex: 1;
   font-size: 2.5rem;
   font-weight: 900;
-
   letter-spacing: -0.02em;
 }
 
