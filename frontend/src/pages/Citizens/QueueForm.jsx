@@ -16,11 +16,16 @@ import {
 import "./styles/QueueForm.css";
 import QueueModal from "./QueueModal";
 import { useNavigate } from "react-router-dom";
-import { GET_DEPARTMENTS, GET_SERVICES, GET_QUEUESTAFF_PROFILE } from "../../graphql/query";
+import {
+  GET_DEPARTMENTS,
+  GET_SERVICES,
+  GET_QUEUESTAFF_PROFILE,
+} from "../../graphql/query";
 import { CREATE_QUEUE } from "../../graphql/mutation";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import SettingsPage from "./SettingsPage";
+import ScrollHint from "../../components/ScrollHint/ScrollHint";
 import { logoutPreservingRoleData } from "../../utils/logoutHelper";
 import { isOfficeHours, getOfficeHoursMessage } from "../../utils/officeHours";
 
@@ -35,11 +40,13 @@ const QueueForm = ({ onSuccess }) => {
 
   const [queueStaffMenuOpen, setQueueStaffMenuOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const staffUsername = localStorage.getItem("queueStaffUsername") ||
+  const staffUsername =
+    localStorage.getItem("queueStaffUsername") ||
     localStorage.getItem("staffUsername") ||
     "Queue Staff";
 
-  const staffId = localStorage.getItem("queueStaffId") ||
+  const staffId =
+    localStorage.getItem("queueStaffId") ||
     localStorage.getItem("staffId") ||
     localStorage.getItem("userId");
 
@@ -50,7 +57,9 @@ const QueueForm = ({ onSuccess }) => {
     console.log("QueueForm auth check - Token:", token, "Staff ID:", staffId);
 
     if (!token || !staffId) {
-      console.error("No authentication token or staff ID found in localStorage");
+      console.error(
+        "No authentication token or staff ID found in localStorage",
+      );
       // Try to get from sessionStorage as fallback
       const sessionToken = sessionStorage.getItem("token");
       const sessionStaffInfo = sessionStorage.getItem("staffInfo");
@@ -81,9 +90,9 @@ const QueueForm = ({ onSuccess }) => {
     const savedTheme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", savedTheme);
 
-    const channel = new BroadcastChannel('theme-updates');
+    const channel = new BroadcastChannel("theme-updates");
     channel.onmessage = (event) => {
-      if (event.data.type === 'THEME_CHANGED') {
+      if (event.data.type === "THEME_CHANGED") {
         document.documentElement.setAttribute("data-theme", event.data.theme);
       }
     };
@@ -98,17 +107,18 @@ const QueueForm = ({ onSuccess }) => {
     data: staffData,
     loading: staffLoading,
     error: staffError,
-    refetch: refetchStaff
+    refetch: refetchStaff,
   } = useQuery(GET_QUEUESTAFF_PROFILE, {
     variables: {
-      staffId: staffId ? parseInt(staffId, 10) : null
+      staffId: staffId ? parseInt(staffId, 10) : null,
     },
     skip: !staffId,
     fetchPolicy: "network-only",
     onError: (error) => {
       console.error("Staff profile query error:", error);
       // If query fails, try to use stored data
-      const storedStaffInfo = localStorage.getItem("staffInfo") ||
+      const storedStaffInfo =
+        localStorage.getItem("staffInfo") ||
         sessionStorage.getItem("staffInfo");
       if (storedStaffInfo) {
         try {
@@ -119,63 +129,70 @@ const QueueForm = ({ onSuccess }) => {
         }
       }
 
-      if (error.message.includes("Unauthorized") || error.message.includes("Authentication")) {
+      if (
+        error.message.includes("Unauthorized") ||
+        error.message.includes("Authentication")
+      ) {
         console.error("Authentication error, clearing storage and redirecting");
         localStorage.clear();
         sessionStorage.clear();
         navigate("/login");
       }
-    }
+    },
   });
 
-  const staffInfo = staffData?.queueStaff || staffData?.staff || staffData?.getQueueStaffProfile || null;
+  const staffInfo =
+    staffData?.queueStaff ||
+    staffData?.staff ||
+    staffData?.getQueueStaffProfile ||
+    null;
 
   const {
     data: departmentsData,
     loading: departmentsLoading,
     error: departmentsError,
-    refetch: refetchDepartments
+    refetch: refetchDepartments,
   } = useQuery(GET_DEPARTMENTS, {
     fetchPolicy: "network-only",
     onError: (error) => {
       console.error("Departments query error:", error);
-    }
+    },
   });
 
   const {
     data: servicesData,
     loading: servicesLoading,
     error: servicesError,
-    refetch: refetchServices
+    refetch: refetchServices,
   } = useQuery(GET_SERVICES, {
     fetchPolicy: "network-only",
     onError: (error) => {
       console.error("Services query error:", error);
-    }
+    },
   });
 
   // Real-time updates listener
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'dataUpdated') {
+      if (e.key === "dataUpdated") {
         refetchDepartments();
         refetchServices();
       }
     };
 
-    const channel = new BroadcastChannel('admin-updates');
+    const channel = new BroadcastChannel("admin-updates");
 
     channel.onmessage = (event) => {
-      if (event.data.type === 'DATA_UPDATED') {
+      if (event.data.type === "DATA_UPDATED") {
         refetchDepartments();
         refetchServices();
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
       channel.close();
     };
   }, [refetchDepartments, refetchServices]);
@@ -197,7 +214,9 @@ const QueueForm = ({ onSuccess }) => {
 
     // If no departments found, try to extract from services
     if (departments.length === 0 && servicesData?.services) {
-      const services = Array.isArray(servicesData.services) ? servicesData.services : [];
+      const services = Array.isArray(servicesData.services)
+        ? servicesData.services
+        : [];
       const departmentMap = new Map();
 
       services.forEach((service) => {
@@ -222,7 +241,7 @@ const QueueForm = ({ onSuccess }) => {
   const [createQueue] = useMutation(CREATE_QUEUE, {
     onError: (error) => {
       console.error("Create queue mutation error:", error);
-    }
+    },
   });
 
   const [queueNumber, setQueueNumber] = useState("");
@@ -234,11 +253,14 @@ const QueueForm = ({ onSuccess }) => {
   // Fixed service filtering
   useEffect(() => {
     if (servicesData?.services && formData.departmentId) {
-      const services = Array.isArray(servicesData.services) ? servicesData.services : [];
+      const services = Array.isArray(servicesData.services)
+        ? servicesData.services
+        : [];
       const filtered = services.filter(
         (service) =>
           service?.department &&
-          String(service.department.departmentId) === String(formData.departmentId)
+          String(service.department.departmentId) ===
+            String(formData.departmentId),
       );
       setFilteredServices(filtered);
     } else {
@@ -300,11 +322,11 @@ const QueueForm = ({ onSuccess }) => {
 
     try {
       const selectedService = filteredServices.find(
-        (service) => String(service.serviceId) === String(formData.serviceId)
+        (service) => String(service.serviceId) === String(formData.serviceId),
       );
 
       const selectedDepartment = departmentOptions?.find(
-        (dept) => String(dept.departmentId) === String(formData.departmentId)
+        (dept) => String(dept.departmentId) === String(formData.departmentId),
       );
 
       if (!selectedService || !selectedDepartment) {
@@ -424,14 +446,14 @@ const QueueForm = ({ onSuccess }) => {
 
   const getSelectedDepartmentName = () => {
     const dept = departmentOptions?.find(
-      (d) => String(d.departmentId) === String(formData.departmentId)
+      (d) => String(d.departmentId) === String(formData.departmentId),
     );
     return dept?.departmentName || "Not selected";
   };
 
   const getSelectedServiceName = () => {
     const service = filteredServices.find(
-      (s) => String(s.serviceId) === String(formData.serviceId)
+      (s) => String(s.serviceId) === String(formData.serviceId),
     );
     return service?.serviceName || "Not selected";
   };
@@ -474,7 +496,10 @@ const QueueForm = ({ onSuccess }) => {
   }
 
   if (staffError || departmentsError || servicesError) {
-    const errorMessage = staffError?.message || departmentsError?.message || servicesError?.message;
+    const errorMessage =
+      staffError?.message ||
+      departmentsError?.message ||
+      servicesError?.message;
 
     return (
       <div className="queue-page-wrapper">
@@ -489,10 +514,7 @@ const QueueForm = ({ onSuccess }) => {
               >
                 Retry
               </button>
-              <button
-                className="queue-logout-btn"
-                onClick={handleLogout}
-              >
+              <button className="queue-logout-btn" onClick={handleLogout}>
                 Logout
               </button>
             </div>
@@ -508,9 +530,7 @@ const QueueForm = ({ onSuccess }) => {
       <Header />
       <div className="queue-home-container">
         <div className="queue-top-section">
-          <div className="queue-top-section-left">
-            {/* Left side spacer */}
-          </div>
+          <div className="queue-top-section-left">{/* Left side spacer */}</div>
 
           <div className="queue-top-section-center">
             <div className="queue-progress-container">
@@ -541,25 +561,44 @@ const QueueForm = ({ onSuccess }) => {
               <button
                 className="queue-staff-menu-toggle"
                 onClick={() => setQueueStaffMenuOpen(!queueStaffMenuOpen)}
-                style={{ padding: '0.4rem 0.6rem', border: 'none', background: 'transparent', height: 'auto' }}
+                style={{
+                  padding: "0.4rem 0.6rem",
+                  border: "none",
+                  background: "transparent",
+                  height: "auto",
+                }}
               >
                 <div className="queue-staff-avatar">
                   <User size={18} />
                 </div>
                 <div className="queue-staff-info">
-                  <span className="queue-staff-name" style={{ fontSize: '0.85rem' }}>{staffUsername || "Staff"}</span>
+                  <span
+                    className="queue-staff-name"
+                    style={{ fontSize: "0.85rem" }}
+                  >
+                    {staffUsername || "Staff"}
+                  </span>
                 </div>
-                <ChevronDown size={14} className={`queue-staff-chevron ${queueStaffMenuOpen ? 'queue-staff-chevron-open' : ''}`} />
+                <ChevronDown
+                  size={14}
+                  className={`queue-staff-chevron ${queueStaffMenuOpen ? "queue-staff-chevron-open" : ""}`}
+                />
               </button>
 
               {queueStaffMenuOpen && (
                 <div className="queue-staff-menu-dropdown">
-                  <button className="queue-staff-menu-item" onClick={handleManageSettings}>
+                  <button
+                    className="queue-staff-menu-item"
+                    onClick={handleManageSettings}
+                  >
                     <Settings size={18} />
                     <span>Settings</span>
                   </button>
                   <div className="queue-staff-menu-divider"></div>
-                  <button className="queue-staff-menu-item queue-staff-menu-logout" onClick={handleLogout}>
+                  <button
+                    className="queue-staff-menu-item queue-staff-menu-logout"
+                    onClick={handleLogout}
+                  >
                     <LogOut size={18} />
                     <span>Logout</span>
                   </button>
@@ -576,6 +615,8 @@ const QueueForm = ({ onSuccess }) => {
               <p className="queue-form-subtitle">{getStepSubtitle()}</p>
             </div>
           </div>
+
+          <ScrollHint />
 
           <div className="queue-form-wrapper">
             {error && (
@@ -622,11 +663,17 @@ const QueueForm = ({ onSuccess }) => {
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="queue-select-arrow" size={14} />
+                          <ChevronDown
+                            className="queue-select-arrow"
+                            size={14}
+                          />
                         </div>
-                        {departmentOptions?.length === 0 && !departmentsLoading && (
-                          <p className="queue-no-data-message">No departments available</p>
-                        )}
+                        {departmentOptions?.length === 0 &&
+                          !departmentsLoading && (
+                            <p className="queue-no-data-message">
+                              No departments available
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -670,11 +717,18 @@ const QueueForm = ({ onSuccess }) => {
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="queue-select-arrow" size={14} />
+                          <ChevronDown
+                            className="queue-select-arrow"
+                            size={14}
+                          />
                         </div>
-                        {filteredServices.length === 0 && formData.departmentId && !servicesLoading && (
-                          <p className="queue-no-data-message">No services available for this department</p>
-                        )}
+                        {filteredServices.length === 0 &&
+                          formData.departmentId &&
+                          !servicesLoading && (
+                            <p className="queue-no-data-message">
+                              No services available for this department
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -709,7 +763,10 @@ const QueueForm = ({ onSuccess }) => {
                               Priority (Senior/PWD/Pregnant)
                             </option>
                           </select>
-                          <ChevronDown className="queue-select-arrow" size={14} />
+                          <ChevronDown
+                            className="queue-select-arrow"
+                            size={14}
+                          />
                         </div>
                       </div>
                     </div>
@@ -825,9 +882,7 @@ const QueueForm = ({ onSuccess }) => {
       </div>
 
       {/* Settings Modal */}
-      {showSettings && (
-        <SettingsPage onClose={() => setShowSettings(false)} />
-      )}
+      {showSettings && <SettingsPage onClose={() => setShowSettings(false)} />}
 
       <Footer />
     </div>

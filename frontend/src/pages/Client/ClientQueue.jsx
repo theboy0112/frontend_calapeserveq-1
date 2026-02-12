@@ -16,6 +16,7 @@ import { GET_DEPARTMENTS, GET_SERVICES } from "../../graphql/query";
 import { CREATE_QUEUE } from "../../graphql/mutation";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
+import ScrollHint from "../../components/ScrollHint/ScrollHint";
 import { isOfficeHours, getOfficeHoursMessage } from "../../utils/officeHours";
 
 import { useNavigate } from "react-router-dom";
@@ -33,48 +34,48 @@ const ClientQueue = () => {
     data: departmentsData,
     loading: departmentsLoading,
     error: departmentsError,
-    refetch: refetchDepartments
+    refetch: refetchDepartments,
   } = useQuery(GET_DEPARTMENTS, {
     fetchPolicy: "network-only",
     onError: (error) => {
       console.error("Departments query error:", error);
-    }
+    },
   });
 
   const {
     data: servicesData,
     loading: servicesLoading,
     error: servicesError,
-    refetch: refetchServices
+    refetch: refetchServices,
   } = useQuery(GET_SERVICES, {
     fetchPolicy: "network-only",
     onError: (error) => {
       console.error("Services query error:", error);
-    }
+    },
   });
 
   // Real-time updates listener
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'dataUpdated') {
+      if (e.key === "dataUpdated") {
         refetchDepartments();
         refetchServices();
       }
     };
 
-    const channel = new BroadcastChannel('admin-updates');
+    const channel = new BroadcastChannel("admin-updates");
 
     channel.onmessage = (event) => {
-      if (event.data.type === 'DATA_UPDATED') {
+      if (event.data.type === "DATA_UPDATED") {
         refetchDepartments();
         refetchServices();
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
       channel.close();
     };
   }, [refetchDepartments, refetchServices]);
@@ -90,7 +91,9 @@ const ClientQueue = () => {
     }
 
     if (departments.length === 0 && servicesData?.services) {
-      const services = Array.isArray(servicesData.services) ? servicesData.services : [];
+      const services = Array.isArray(servicesData.services)
+        ? servicesData.services
+        : [];
       const departmentMap = new Map();
 
       services.forEach((service) => {
@@ -114,7 +117,7 @@ const ClientQueue = () => {
   const [createQueue] = useMutation(CREATE_QUEUE, {
     onError: (error) => {
       console.error("Create queue mutation error:", error);
-    }
+    },
   });
 
   const [queueNumber, setQueueNumber] = useState("");
@@ -125,11 +128,14 @@ const ClientQueue = () => {
 
   useEffect(() => {
     if (servicesData?.services && formData.departmentId) {
-      const services = Array.isArray(servicesData.services) ? servicesData.services : [];
+      const services = Array.isArray(servicesData.services)
+        ? servicesData.services
+        : [];
       const filtered = services.filter(
         (service) =>
           service?.department &&
-          String(service.department.departmentId) === String(formData.departmentId)
+          String(service.department.departmentId) ===
+            String(formData.departmentId),
       );
       setFilteredServices(filtered);
     } else {
@@ -140,9 +146,7 @@ const ClientQueue = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     const processedValue =
-      name === "departmentId" || name === "serviceId"
-        ? value
-        : value;
+      name === "departmentId" || name === "serviceId" ? value : value;
 
     setFormData((prev) => ({
       ...prev,
@@ -186,11 +190,11 @@ const ClientQueue = () => {
 
     try {
       const selectedService = filteredServices.find(
-        (service) => String(service.serviceId) === String(formData.serviceId)
+        (service) => String(service.serviceId) === String(formData.serviceId),
       );
 
       const selectedDepartment = departmentOptions?.find(
-        (dept) => String(dept.departmentId) === String(formData.departmentId)
+        (dept) => String(dept.departmentId) === String(formData.departmentId),
       );
 
       if (!selectedService || !selectedDepartment) {
@@ -292,14 +296,14 @@ const ClientQueue = () => {
 
   const getSelectedDepartmentName = () => {
     const dept = departmentOptions?.find(
-      (d) => String(d.departmentId) === String(formData.departmentId)
+      (d) => String(d.departmentId) === String(formData.departmentId),
     );
     return dept?.departmentName || "Not selected";
   };
 
   const getSelectedServiceName = () => {
     const service = filteredServices.find(
-      (s) => String(s.serviceId) === String(formData.serviceId)
+      (s) => String(s.serviceId) === String(formData.serviceId),
     );
     return service?.serviceName || "Not selected";
   };
@@ -352,7 +356,18 @@ const ClientQueue = () => {
             <button
               className="queue-previous-btn"
               onClick={() => navigate("/home")}
-              style={{ width: 'fit-content', border: 'none', background: 'transparent', padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#475569', fontSize: '0.85rem', cursor: 'pointer' }}
+              style={{
+                width: "fit-content",
+                border: "none",
+                background: "transparent",
+                padding: "0.4rem 0.8rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                color: "#475569",
+                fontSize: "0.85rem",
+                cursor: "pointer",
+              }}
             >
               <ArrowLeft size={18} />
               <span>Back</span>
@@ -395,6 +410,8 @@ const ClientQueue = () => {
               <p className="queue-form-subtitle">{getStepSubtitle()}</p>
             </div>
           </div>
+
+          <ScrollHint />
 
           <div className="queue-form-wrapper">
             {error && (
@@ -441,11 +458,17 @@ const ClientQueue = () => {
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="queue-select-arrow" size={14} />
+                          <ChevronDown
+                            className="queue-select-arrow"
+                            size={14}
+                          />
                         </div>
-                        {departmentOptions?.length === 0 && !departmentsLoading && (
-                          <p className="queue-no-data-message">No departments available</p>
-                        )}
+                        {departmentOptions?.length === 0 &&
+                          !departmentsLoading && (
+                            <p className="queue-no-data-message">
+                              No departments available
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -489,11 +512,18 @@ const ClientQueue = () => {
                               </option>
                             ))}
                           </select>
-                          <ChevronDown className="queue-select-arrow" size={14} />
+                          <ChevronDown
+                            className="queue-select-arrow"
+                            size={14}
+                          />
                         </div>
-                        {filteredServices.length === 0 && formData.departmentId && !servicesLoading && (
-                          <p className="queue-no-data-message">No services available for this department</p>
-                        )}
+                        {filteredServices.length === 0 &&
+                          formData.departmentId &&
+                          !servicesLoading && (
+                            <p className="queue-no-data-message">
+                              No services available for this department
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -528,7 +558,10 @@ const ClientQueue = () => {
                               Priority (Senior/PWD/Pregnant)
                             </option>
                           </select>
-                          <ChevronDown className="queue-select-arrow" size={14} />
+                          <ChevronDown
+                            className="queue-select-arrow"
+                            size={14}
+                          />
                         </div>
                       </div>
                     </div>

@@ -1,5 +1,5 @@
 /* ===== RESPONSIVE QUEUE FORM STYLES WITH THEME SUPPORT ===== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 /* Theme Variables */
 :root[data-theme="light"],
@@ -57,9 +57,24 @@
   background: var(--bg-secondary);
 }
 
+@media (max-width: 768px) {
+  .queue-page-wrapper {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto !important;
+  }
+}
+
 /* Base Container - Scrollable Content */
 .queue-home-container {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   background: var(--bg-secondary);
   flex: 1;
   display: flex;
@@ -69,6 +84,13 @@
   position: relative;
   padding-top: 0;
   height: 100%;
+}
+
+@media (max-width: 768px) {
+  .queue-home-container {
+    height: auto;
+    overflow-y: visible !important;
+  }
 }
 
 /* Loading Container - Centered */
@@ -305,6 +327,12 @@
   justify-content: flex-start;
 }
 
+@media (max-width: 768px) {
+  .queue-form-container {
+    padding-bottom: 5rem; /* Space for footer and browser bars */
+  }
+}
+
 /* Hide labels on mobile by default, show on desktop */
 @media (max-width: 768px) {
   .queue-top-section {
@@ -344,7 +372,6 @@
     padding: 0.4rem !important;
   }
 }
-
 
 .queue-form-header {
   max-width: 500px;
@@ -452,7 +479,6 @@
   color: #64748b;
   margin: 0;
 }
-
 
 .queue-form-wrapper {
   max-width: 600px;
@@ -571,7 +597,6 @@
 .queue-form-select:hover {
   border-color: #9ca3af;
 }
-
 
 .queue-form-select:focus {
   outline: none;
@@ -801,7 +826,6 @@
     padding: 1.5rem;
   }
 
-
   .queue-staff-menu-toggle {
     min-width: 240px;
   }
@@ -813,7 +837,6 @@
     padding: 5.5rem 1rem 1.5rem;
     /* Increased top padding to clear menu */
   }
-
 
   .queue-staff-menu-toggle {
     min-width: 220px;
@@ -839,7 +862,6 @@
   .queue-form-container {
     padding: 1rem 0.75rem;
   }
-
 
   .queue-staff-menu-toggle {
     min-width: 200px;
@@ -1024,7 +1046,6 @@
     /* Increased top padding to clear menu */
   }
 
-
   .queue-staff-menu-toggle {
     min-width: 170px;
     padding: 0.35rem 0.6rem;
@@ -1170,7 +1191,6 @@
     padding: 0.4rem 0.5rem;
   }
 }
-
 
 /* Landscape Orientation */
 @media (max-height: 600px) and (orientation: landscape) {

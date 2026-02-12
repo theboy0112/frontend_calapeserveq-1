@@ -33,6 +33,7 @@ import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
 import QueueForm from "../Citizens/QueueForm";
 import Settingspage from "./Settingspage";
+import ScrollHint from "../../components/ScrollHint/ScrollHint";
 import { logoutPreservingRoleData } from "../../utils/logoutHelper";
 
 const StaffDashboard = () => {
@@ -214,8 +215,8 @@ const StaffDashboard = () => {
       variables: {
         staffId: parseInt(
           sessionStorage.getItem("staffId") ||
-          localStorage.getItem("staffId") ||
-          localStorage.getItem("queueStaffId"),
+            localStorage.getItem("staffId") ||
+            localStorage.getItem("queueStaffId"),
         ),
       },
       skip:
@@ -406,7 +407,10 @@ const StaffDashboard = () => {
       if (localStaffInfo) {
         try {
           staffData = JSON.parse(localStaffInfo);
-          console.log("Falling back to staff data from localStorage:", staffData);
+          console.log(
+            "Falling back to staff data from localStorage:",
+            staffData,
+          );
         } catch (e) {
           console.error("Error parsing localStorage staffInfo:", e);
         }
@@ -433,9 +437,9 @@ const StaffDashboard = () => {
           },
           counter: localStorage.getItem("staffCounterId")
             ? {
-              counterId: parseInt(localStorage.getItem("staffCounterId")),
-              counterName: localStorage.getItem("staffCounterName") || "",
-            }
+                counterId: parseInt(localStorage.getItem("staffCounterId")),
+                counterName: localStorage.getItem("staffCounterName") || "",
+              }
             : null,
         };
       }
@@ -533,7 +537,11 @@ const StaffDashboard = () => {
       setQueueList([]);
       setCurrentServing(null);
     }
-  }, [queuesByDepartment, departmentInfo.prefix, staffInfo?.counter?.counterId]);
+  }, [
+    queuesByDepartment,
+    departmentInfo.prefix,
+    staffInfo?.counter?.counterId,
+  ]);
 
   useEffect(() => {
     if (queueError) {
@@ -728,7 +736,10 @@ const StaffDashboard = () => {
               <h1 className="dashboard-title">
                 {departmentInfo.name}
                 {staffInfo?.counter?.counterName && (
-                  <span className="counter-name-inline"> | {staffInfo.counter.counterName}</span>
+                  <span className="counter-name-inline">
+                    {" "}
+                    | {staffInfo.counter.counterName}
+                  </span>
                 )}
               </h1>
               <div className="current-time">
@@ -781,6 +792,8 @@ const StaffDashboard = () => {
             </div>
           </div>
 
+          <ScrollHint />
+
           <div className="now-serving-section">
             <div className="now-serving-card">
               <div className="serving-info">
@@ -791,13 +804,13 @@ const StaffDashboard = () => {
                 <div className="current-number">
                   {currentServing
                     ? (() => {
-                      const servingCustomer = queuesByDepartment.find(
-                        (item) => item.queueId === currentServing,
-                      );
-                      return servingCustomer
-                        ? `${departmentInfo.prefix}-${servingCustomer.number}`
-                        : "None";
-                    })()
+                        const servingCustomer = queuesByDepartment.find(
+                          (item) => item.queueId === currentServing,
+                        );
+                        return servingCustomer
+                          ? `${departmentInfo.prefix}-${servingCustomer.number}`
+                          : "None";
+                      })()
                     : "None"}
                 </div>
                 <div className="serving-details">
@@ -969,11 +982,11 @@ const StaffDashboard = () => {
                       {queueList.filter(
                         (item) => item.priority?.toLowerCase() === "regular",
                       ).length === 0 && (
-                          <div className="empty-queue">
-                            <Users size={32} className="empty-icon" />
-                            <p>No regular queues</p>
-                          </div>
-                        )}
+                        <div className="empty-queue">
+                          <Users size={32} className="empty-icon" />
+                          <p>No regular queues</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1082,14 +1095,14 @@ const StaffDashboard = () => {
                       {queueList.filter(
                         (item) => item.priority?.toLowerCase() !== "regular",
                       ).length === 0 && (
-                          <div className="empty-queue">
-                            <Star
-                              size={32}
-                              className="empty-icon priority-icon"
-                            />
-                            <p>No priority queues</p>
-                          </div>
-                        )}
+                        <div className="empty-queue">
+                          <Star
+                            size={32}
+                            className="empty-icon priority-icon"
+                          />
+                          <p>No priority queues</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -19,6 +19,7 @@ import {
   FaTimes,
   FaUserFriends,
   FaDesktop,
+  FaBars,
 } from "react-icons/fa";
 import { IoMdSettings } from "react-icons/io";
 import { HiUser } from "react-icons/hi";
@@ -140,9 +141,9 @@ const ManageStaff = () => {
   // Filter counters based on selected department
   const filteredCounters = newStaff.departmentId
     ? countersData?.counters?.filter(
-      (counter) =>
-        counter.department?.departmentId === parseInt(newStaff.departmentId),
-    ) || []
+        (counter) =>
+          counter.department?.departmentId === parseInt(newStaff.departmentId),
+      ) || []
     : [];
 
   const handleAddStaff = async (e) => {
@@ -182,9 +183,7 @@ const ManageStaff = () => {
               staffUsername: newStaff.username,
               roleId: parseInt(newStaff.roleId),
               departmentId: parseInt(newStaff.departmentId),
-              counterId: newStaff.counterId
-                ? parseInt(newStaff.counterId)
-                : 0,
+              counterId: newStaff.counterId ? parseInt(newStaff.counterId) : 0,
             },
           },
         });

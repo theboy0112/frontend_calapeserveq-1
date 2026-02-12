@@ -2,7 +2,12 @@
   padding: 24px;
   background: #f8fafc;
   min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 .loading-overlay {
@@ -243,7 +248,7 @@
 .staff-table-container {
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: hidden; /* Ensure rounded corners clip content */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -501,10 +506,13 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .staff-table {
-    overflow-x: auto;
+    display: block;
+    width: 100%;
+    overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
-    margin: 0 -16px;
-    padding: 0 16px;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
   }
 
   .staff-form-modal {
@@ -521,10 +529,6 @@
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
-  }
-
-  .staff-table {
-    overflow-x: auto;
   }
 
   .staff-table table {

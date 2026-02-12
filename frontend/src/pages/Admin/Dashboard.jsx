@@ -28,6 +28,7 @@ import ManageAds from "./ManageAds";
 import ManageCounter from "./ManageCounter";
 import ReportsPanel from "./ReportsPanel";
 import Reports from "./Reports";
+import ScrollHint from "../../components/ScrollHint/ScrollHint";
 import { useQuery } from "@apollo/client";
 import {
   GET_SERVICES,
@@ -154,6 +155,8 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      <ScrollHint />
+
       <div className="stats-grid">
         <div className="stat-card staff-card">
           <div className="stat-icon">
@@ -198,28 +201,29 @@ const AdminDashboard = () => {
         return <ManageProfile />;
       case "staff":
         return (
-          <ManageStaff
-            findAll={findAll}
-            departments={departments}
-            setStaffList={setStaffList}
-          />
+          <div className="manage-section-wrapper">
+            <ManageStaff
+              findAll={findAll}
+              departments={departments}
+              setStaffList={setStaffList}
+            />
+            <ScrollHint text="Scroll table horizontally" />
+          </div>
         );
       case "departments":
         return (
-          <ManageDepartment
-            departments={departments}
-            setDepartments={setDepartments}
-          />
+          <div className="manage-section-wrapper">
+            <ManageDepartment
+              departments={departments}
+              setDepartments={setDepartments}
+            />
+            <ScrollHint text="Scroll table horizontally" />
+          </div>
         );
       case "services":
         return <ManageServices services={services} setServices={setServices} />;
       case "counters":
-        return (
-          <ManageCounter
-            counters={counters}
-            setCounters={setCounters}
-          />
-        );
+        return <ManageCounter counters={counters} setCounters={setCounters} />;
       case "ads":
         return <ManageAds />;
       case "reports":
@@ -255,8 +259,9 @@ const AdminDashboard = () => {
 
           <nav className="sidebar-nav">
             <button
-              className={`nav-item ${activeSection === "dashboard" ? "active" : ""
-                }`}
+              className={`nav-item ${
+                activeSection === "dashboard" ? "active" : ""
+              }`}
               onClick={() => setActiveSection("dashboard")}
               title="Dashboard"
             >
@@ -265,8 +270,9 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${activeSection === "profile" ? "active" : ""
-                }`}
+              className={`nav-item ${
+                activeSection === "profile" ? "active" : ""
+              }`}
               onClick={() => setActiveSection("profile")}
               title="Profile"
             >
@@ -275,8 +281,9 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${activeSection === "staff" ? "active" : ""
-                }`}
+              className={`nav-item ${
+                activeSection === "staff" ? "active" : ""
+              }`}
               onClick={() => setActiveSection("staff")}
               title="Manage Staff"
             >
@@ -285,8 +292,9 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${activeSection === "departments" ? "active" : ""
-                }`}
+              className={`nav-item ${
+                activeSection === "departments" ? "active" : ""
+              }`}
               onClick={() => setActiveSection("departments")}
               title="Manage Departments"
             >
@@ -297,8 +305,9 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${activeSection === "services" ? "active" : ""
-                }`}
+              className={`nav-item ${
+                activeSection === "services" ? "active" : ""
+              }`}
               onClick={() => setActiveSection("services")}
               title="Manage Services"
             >
@@ -307,8 +316,9 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              className={`nav-item ${activeSection === "counters" ? "active" : ""
-                }`}
+              className={`nav-item ${
+                activeSection === "counters" ? "active" : ""
+              }`}
               onClick={() => setActiveSection("counters")}
               title="Manage Counters"
             >
@@ -325,13 +335,16 @@ const AdminDashboard = () => {
               {sidebarOpen && <span className="nav-text">Manage Ads</span>}
             </button>
             <button
-              className={`nav-item ${activeSection === "reports" ? "active" : ""
-                }`}
+              className={`nav-item ${
+                activeSection === "reports" ? "active" : ""
+              }`}
               onClick={() => setActiveSection("reports")}
               title="Reports"
             >
               <FiDownload className="nav-icon" size={20} />
-              {sidebarOpen && <span className="nav-text">Download Reports</span>}
+              {sidebarOpen && (
+                <span className="nav-text">Download Reports</span>
+              )}
             </button>
           </nav>
 
@@ -348,8 +361,9 @@ const AdminDashboard = () => {
         </div>
 
         <div
-          className={`main-content ${sidebarOpen ? "sidebar-open" : "sidebar-closed"
-            }`}
+          className={`main-content ${
+            sidebarOpen ? "sidebar-open" : "sidebar-closed"
+          }`}
         >
           <div className="content-header">
             <div className="header-left">
@@ -375,8 +389,10 @@ const AdminDashboard = () => {
                 <p className="page-subtitle">
                   {activeSection === "dashboard" &&
                     "Overview of municipal operations"}
-                  {activeSection === "profile" && "Manage your account settings"}
-                  {activeSection === "staff" && "Manage staff members and roles"}
+                  {activeSection === "profile" &&
+                    "Manage your account settings"}
+                  {activeSection === "staff" &&
+                    "Manage staff members and roles"}
                   {activeSection === "departments" &&
                     "Organize departments and structure"}
                   {activeSection === "services" &&

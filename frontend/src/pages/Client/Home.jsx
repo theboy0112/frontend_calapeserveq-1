@@ -1,35 +1,46 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, Clock, Users, Zap, Heart, X, Star } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Clock,
+  Users,
+  Zap,
+  Heart,
+  X,
+  Star,
+  ChevronDown,
+} from "lucide-react";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/Footer";
+import ScrollHint from "../../components/ScrollHint/ScrollHint";
 import "./styles/Home.css";
-
 
 const Home = () => {
   const navigate = useNavigate();
   const [showFeedback, setShowFeedback] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const features = [
     {
       icon: <Clock size={24} />,
       title: "Save Time",
-      description: "No more waiting in long lines. Get your queue number instantly."
+      description:
+        "No more waiting in long lines. Get your queue number instantly.",
     },
     {
       icon: <Users size={24} />,
       title: "Real-time Updates",
-      description: "Track your position and get notified when it's your turn."
+      description: "Track your position and get notified when it's your turn.",
     },
     {
       icon: <Zap size={24} />,
       title: "Easy & Fast",
-      description: "Simple interface that gets you queued in seconds."
-    }
+      description: "Simple interface that gets you queued in seconds.",
+    },
   ];
 
   const handleSubmitFeedback = async (e) => {
@@ -37,13 +48,13 @@ const Home = () => {
     setIsSubmitting(true);
 
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    console.log('Feedback submitted:', { rating, comment });
+    console.log("Feedback submitted:", { rating, comment });
 
     // Reset form
     setRating(0);
-    setComment('');
+    setComment("");
     setShowFeedback(false);
     setIsSubmitting(false);
   };
@@ -51,7 +62,7 @@ const Home = () => {
   const handleCloseFeedback = () => {
     setShowFeedback(false);
     setRating(0);
-    setComment('');
+    setComment("");
   };
 
   return (
@@ -88,16 +99,20 @@ const Home = () => {
           </button>
 
           <p className="home-hero-subtitle">
-            Skip the physical queue. Get your digital number instantly
-            and make the most of your time.
+            Skip the physical queue. Get your digital number instantly and make
+            the most of your time.
           </p>
+
+          <ScrollHint />
         </div>
 
         {/* Features Grid */}
         <div className="home-features-grid">
           {features.map((feature, index) => (
             <div className="home-feature-card" key={index}>
-              <div className={`home-feature-icon home-feature-icon-${index + 1}`}>
+              <div
+                className={`home-feature-icon home-feature-icon-${index + 1}`}
+              >
                 {feature.icon}
               </div>
               <h3 className="home-feature-title">{feature.title}</h3>
@@ -108,7 +123,10 @@ const Home = () => {
 
         {/* Get Started Button - Below Cards */}
         <div className="home-cta-buttons">
-          <button className="home-btn-primary" onClick={() => navigate("/queue")}>
+          <button
+            className="home-btn-primary"
+            onClick={() => navigate("/queue")}
+          >
             Get Started
             <ArrowRight className="home-arrow-icon" size={20} />
           </button>
@@ -131,28 +149,43 @@ const Home = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmitFeedback} className="home-feedback-form">
+            <form
+              onSubmit={handleSubmitFeedback}
+              className="home-feedback-form"
+            >
               <div className="home-rating-section">
-                <label className="home-rating-label">How was your experience?</label>
+                <label className="home-rating-label">
+                  How was your experience?
+                </label>
                 <div className="home-stars-container">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       type="button"
-                      className={`home-star-button ${star <= (hoveredStar || rating) ? 'active' : ''}`}
+                      className={`home-star-button ${star <= (hoveredStar || rating) ? "active" : ""}`}
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoveredStar(star)}
                       onMouseLeave={() => setHoveredStar(0)}
                       aria-label={`Rate ${star} stars`}
                     >
-                      <Star size={40} fill={star <= (hoveredStar || rating) ? 'currentColor' : 'none'} />
+                      <Star
+                        size={40}
+                        fill={
+                          star <= (hoveredStar || rating)
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
                     </button>
                   ))}
                 </div>
               </div>
 
               <div className="home-comment-section">
-                <label htmlFor="home-feedback-comment" className="home-comment-label">
+                <label
+                  htmlFor="home-feedback-comment"
+                  className="home-comment-label"
+                >
                   Tell us more (optional)
                 </label>
                 <textarea
@@ -170,7 +203,7 @@ const Home = () => {
                 className="home-submit-button"
                 disabled={rating === 0 || isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+                {isSubmitting ? "Submitting..." : "Submit Feedback"}
               </button>
             </form>
           </div>
