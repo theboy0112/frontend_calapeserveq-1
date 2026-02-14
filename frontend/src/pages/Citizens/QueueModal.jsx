@@ -10,6 +10,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { Sparkles, PartyPopper } from "lucide-react";
+import Swal from "sweetalert2";
 import "./styles/QueueModal.css";
 
 const QueueModal = ({ queueNumber, department, onClose }) => {
@@ -18,7 +19,6 @@ const QueueModal = ({ queueNumber, department, onClose }) => {
   const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
-    
     document.body.style.overflow = "hidden";
 
     const timeouts = [
@@ -37,21 +37,19 @@ const QueueModal = ({ queueNumber, department, onClose }) => {
     setIsPrinting(true);
 
     setTimeout(() => {
-      const printContent = `
-        Municipality of Calape - Service Queue Ticket
-        =============================================
-        Queue Number: ${queueNumber}
-        Department: ${department}
-        Date & Time: ${new Date().toLocaleString()}
-        Status: Waiting
-        
-        Please keep this ticket and present it when called.
-        Thank you for using our services!
-      `;
-      
-      alert("Ticket printed successfully! (Frontend simulation)");
+      window.print();
+
+      Swal.fire({
+        icon: "success",
+        title: "Ticket Printed Successfully!",
+        text: "Your queue ticket has been sent to the printer.",
+        confirmButtonColor: "#667eea",
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
       setIsPrinting(false);
-    }, 2000);
+    }, 500);
   };
 
   const handleClose = () => {
@@ -123,17 +121,17 @@ const QueueModal = ({ queueNumber, department, onClose }) => {
           </h2>
         </div>
 
-          <div className="queue-display-section">
-            <div className="queue-label" aria-label="Your queue number is">
-              YOUR QUEUE NUMBER
-            </div>
-            <div
-              className="queue-number-display"
-              aria-live="polite"
-              aria-label={`Queue number ${queueNumber}`}
-            >
-              {queueNumber}
-            </div>
+        <div className="queue-display-section">
+          <div className="queue-label" aria-label="Your queue number is">
+            YOUR QUEUE NUMBER
+          </div>
+          <div
+            className="queue-number-display"
+            aria-live="polite"
+            aria-label={`Queue number ${queueNumber}`}
+          >
+            {queueNumber}
+          </div>
           <div className="queue-pulse-ring" aria-hidden="true"></div>
         </div>
 
@@ -179,7 +177,8 @@ const QueueModal = ({ queueNumber, department, onClose }) => {
             <div className="instruction-content">
               <p className="instruction-title">Please be seated</p>
               <p className="instruction-text">
-                You will be served shortly. Keep this number visible for municipal staff.
+                You will be served shortly. Keep this number visible for
+                municipal staff.
               </p>
             </div>
           </div>

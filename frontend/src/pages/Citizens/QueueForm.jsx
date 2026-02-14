@@ -114,31 +114,6 @@ const QueueForm = ({ onSuccess }) => {
     },
     skip: !staffId,
     fetchPolicy: "network-only",
-    onError: (error) => {
-      console.error("Staff profile query error:", error);
-      // If query fails, try to use stored data
-      const storedStaffInfo =
-        localStorage.getItem("staffInfo") ||
-        sessionStorage.getItem("staffInfo");
-      if (storedStaffInfo) {
-        try {
-          const parsedInfo = JSON.parse(storedStaffInfo);
-          console.log("Using stored staff info:", parsedInfo);
-        } catch (e) {
-          console.error("Error parsing stored staff info:", e);
-        }
-      }
-
-      if (
-        error.message.includes("Unauthorized") ||
-        error.message.includes("Authentication")
-      ) {
-        console.error("Authentication error, clearing storage and redirecting");
-        localStorage.clear();
-        sessionStorage.clear();
-        navigate("/login");
-      }
-    },
   });
 
   const staffInfo =
@@ -154,9 +129,6 @@ const QueueForm = ({ onSuccess }) => {
     refetch: refetchDepartments,
   } = useQuery(GET_DEPARTMENTS, {
     fetchPolicy: "network-only",
-    onError: (error) => {
-      console.error("Departments query error:", error);
-    },
   });
 
   const {
@@ -166,9 +138,6 @@ const QueueForm = ({ onSuccess }) => {
     refetch: refetchServices,
   } = useQuery(GET_SERVICES, {
     fetchPolicy: "network-only",
-    onError: (error) => {
-      console.error("Services query error:", error);
-    },
   });
 
   // Real-time updates listener

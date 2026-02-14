@@ -37,9 +37,6 @@ const ClientQueue = () => {
     refetch: refetchDepartments,
   } = useQuery(GET_DEPARTMENTS, {
     fetchPolicy: "network-only",
-    onError: (error) => {
-      console.error("Departments query error:", error);
-    },
   });
 
   const {
@@ -49,9 +46,6 @@ const ClientQueue = () => {
     refetch: refetchServices,
   } = useQuery(GET_SERVICES, {
     fetchPolicy: "network-only",
-    onError: (error) => {
-      console.error("Services query error:", error);
-    },
   });
 
   // Real-time updates listener

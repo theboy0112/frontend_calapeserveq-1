@@ -53,36 +53,35 @@ const Login = () => {
       const existingAdminData =
         role !== "admin"
           ? {
-            adminStaffId: localStorage.getItem("adminStaffId"),
-            adminStaffUsername: localStorage.getItem("adminStaffUsername"),
-            adminStaffInfo: localStorage.getItem("adminStaffInfo"),
-          }
+              adminStaffId: localStorage.getItem("adminStaffId"),
+              adminStaffUsername: localStorage.getItem("adminStaffUsername"),
+              adminStaffInfo: localStorage.getItem("adminStaffInfo"),
+            }
           : null;
 
       const existingQueueStaffData =
         role !== "queuestaff"
           ? {
-            queueStaffId: localStorage.getItem("queueStaffId"),
-            queueStaffUsername: localStorage.getItem("queueStaffUsername"),
-            queueStaffInfo: localStorage.getItem("queueStaffInfo"),
-          }
+              queueStaffId: localStorage.getItem("queueStaffId"),
+              queueStaffUsername: localStorage.getItem("queueStaffUsername"),
+              queueStaffInfo: localStorage.getItem("queueStaffInfo"),
+            }
           : null;
 
       const existingStaffData =
         role !== "staff"
           ? {
-            staffId: sessionStorage.getItem("staffId") || localStorage.getItem("staffId"),
-            staffUsername: sessionStorage.getItem("staffUsername") || localStorage.getItem("staffUsername"),
-            staffInfo: sessionStorage.getItem("staffInfo") || localStorage.getItem("staffInfo"),
-          }
+              staffId:
+                sessionStorage.getItem("staffId") ||
+                localStorage.getItem("staffId"),
+              staffUsername:
+                sessionStorage.getItem("staffUsername") ||
+                localStorage.getItem("staffUsername"),
+              staffInfo:
+                sessionStorage.getItem("staffInfo") ||
+                localStorage.getItem("staffInfo"),
+            }
           : null;
-
-      console.log("Preserving data for other roles:", {
-        existingAdminData,
-        existingQueueStaffData,
-        existingStaffData,
-        currentRole: role,
-      });
 
       sessionStorage.clear();
 
@@ -122,8 +121,6 @@ const Login = () => {
         token: access_token,
         loginTime: new Date().toISOString(),
       };
-
-      console.log("Storing staff info:", staffInfo);
 
       localStorage.setItem("token", access_token);
       localStorage.setItem("role", role);
@@ -168,7 +165,6 @@ const Login = () => {
             existingAdminData.adminStaffInfo,
           );
         }
-        console.log("Restored admin data:", existingAdminData.adminStaffId);
       }
 
       if (existingQueueStaffData?.queueStaffId) {
@@ -188,10 +184,6 @@ const Login = () => {
             existingQueueStaffData.queueStaffInfo,
           );
         }
-        console.log(
-          "Restored queuestaff data:",
-          existingQueueStaffData.queueStaffId,
-        );
       }
 
       if (existingStaffData?.staffId && role !== "staff") {
@@ -205,17 +197,7 @@ const Login = () => {
         if (existingStaffData.staffInfo) {
           localStorage.setItem("staffInfo", existingStaffData.staffInfo);
         }
-        console.log("Restored staff data:", existingStaffData.staffId);
       }
-
-      console.log("Final localStorage state:", {
-        queueStaffId: localStorage.getItem("queueStaffId"),
-        queueStaffUsername: localStorage.getItem("queueStaffUsername"),
-        staffId: localStorage.getItem("staffId"),
-        staffUsername: localStorage.getItem("staffUsername"),
-        adminStaffId: localStorage.getItem("adminStaffId"),
-        adminStaffUsername: localStorage.getItem("adminStaffUsername"),
-      });
 
       Swal.fire({
         icon: "success",
@@ -236,7 +218,6 @@ const Login = () => {
         }
       }, 1500);
     } catch (error) {
-      console.error("Login error:", error);
       let message = "Login failed. Please try again.";
       if (error.graphQLErrors?.length) message = error.graphQLErrors[0].message;
       else if (error.networkError)
@@ -331,7 +312,11 @@ const Login = () => {
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   disabled={isLoading}
                 >
-                  {showPassword ? <FaEyeSlash className="eye-icon" /> : <FaEye className="eye-icon" />}
+                  {showPassword ? (
+                    <FaEyeSlash className="eye-icon" />
+                  ) : (
+                    <FaEye className="eye-icon" />
+                  )}
                 </button>
               </div>
               <div className="forgot-password-container">
@@ -359,8 +344,6 @@ const Login = () => {
                 )}
               </button>
             </div>
-
-
           </form>
         </div>
       </div>
